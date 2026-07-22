@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Главная — Проектная</title>
+
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <style>
+        /* --- 1. ЗВЕЗДНОЕ НЕБО С ПАРАЛЛАКСОМ --- */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #000; 
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .stars-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 200%;
+            height: 200%;
+            pointer-events: none;
+            z-index: -2;
+            animation: moveStarsBg 200s linear infinite;
+        }
+
+        .stars-layer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(1px 1px at 20% 15%, rgba(255,255,255,0.9), transparent),
+                        radial-gradient(1px 1px at 40% 60%, rgba(255,255,255,0.6), transparent),
+                        radial-gradient(1px 1px at 60% 25%, rgba(255,255,255,0.8), transparent),
+                        radial-gradient(1px 1px at 80% 75%, rgba(255,255,255,0.5), transparent);
+            opacity: 0.6;
+        }
+
+        .stars-layer::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(2px 2px at 10% 30%, rgba(255,255,255,1), transparent),
+                        radial-gradient(2px 2px at 50% 50%, rgba(255,255,255,1), transparent);
+            opacity: 0.9;
+        }
+
+        @keyframes moveStarsBg {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(-50%, -50%); }
+        }
+
+        .content-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.45);
+            z-index: -1;
+        }
+
+        /* --- 2. СТИКЕРЫ --- */
+        .stickers-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .sticker {
+            position: absolute;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            transition: transform 0.3s ease;
+            pointer-events: auto;
+        }
+
+        .sticker:hover {
+            transform: scale(1.1) rotate(5deg);
+            z-index: 20;
+        }
+
+        /* --- 3. МЕНЮ --- */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(15, 15, 25, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: translateY(0);
+        }
+
+        .navbar.hidden {
+            transform: translateY(-100%);
+        }
+
+        .logo {
+            color: white;
+            font-weight: bold;
+            font-size: 1.4rem;
+            text-decoration: none;
+        }
+
+        .nav-links a {
+            color: #e2e8f0;
+            text-decoration: none;
+            margin-left: 30px;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: #667eea;
+        }
+
+        .menu-toggle {
+            display: none;
+            cursor: pointer;
+            color: white;
+            font-size: 2rem;
+        }
+
+        /* --- 4. ГЛАВНЫЙ ЭКРАН (HERO) --- */
+        .page-wrapper {
+            max-width: 1200px;
+            margin: 120px auto 60px auto;
+            padding: 40px 20px;
+            display: grid;
+            grid-template-columns: 1fr 1.1fr;
+            gap: 50px;
+            align-items: start;
+            position: relative;
+            z-index: 10;
+        }
+
+        .hero-text h1 {
+            font-size: 2.8rem;
+            margin-bottom: 20px;
+            color: white;
+            line-height: 1.2;
+        }
+
+        .hero-text p {
+            font-size: 1.2rem;
+            color: #cbd5e0;
+            margin-bottom: 40px;
+            max-width: 500px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: bold;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border: none;
+            cursor: pointer;
+            text-align: center;
+            min-width: 180px;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid #667eea;
+            color: #667eea;
+        }
+
+        .btn-outline:hover {
+            background: rgba(102, 126, 234, 0.1);
+            box-shadow: none;
+        }
+
+        /* Правая часть с фотками или заглушкой */
+        .right-col {
+            position: sticky;
+            top: 120px;
+            align-self: start;
+            height: calc(100vh - 140px);
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .photo-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .placeholder-box {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #718096;
+            font-style: italic;
+            border: 1px dashed #4a5568;
+        }
+
+        .photo-item-details {
+            border: none;
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            background-color: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .photo-item-details img {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+            border-radius: 12px;
+            transition: transform 0.5s ease;
+        }
+
+        .photo-item-details:hover img {
+            transform: scale(1.05); 
+        }
+
+        .photo-item-details:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 
+                        0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .photo-item-details[open] {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: black;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            transform: none !important;
+            box-shadow: none;
+            cursor: zoom-out;
+        }
+
+        .photo-item-details[open] img {
+            max-width: 100%;
+            max-height: 100%;
+            aspect-ratio: auto;
+            border-radius: 0;
+            transform: none !important;
+        }
+
+        @media (max-width: 900px) {
+            .page-wrapper {
+                grid-template-columns: 1fr;
+                padding: 20px;
+                margin-top: 100px;
+            }
+
+            .left-col, .right-col {
+                position: static;
+                top: 0;
+                height: auto;
+                overflow-y: visible;
+                padding-right: 0;
+            }
+
+            .hero-text h1 { font-size: 2.2rem; }
+            .hero-text p { font-size: 1.1rem; }
+            
+            .btn-group { justify-content: center; }
+
+            .navbar {
+                padding: 15px 20px;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .navbar.active .nav-links {
+                display: block;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: rgba(15, 15, 25, 0.98);
+                padding: 20px;
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .navbar.active .nav-links a {
+                display: block;
+                margin: 15px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Звездное небо -->
+    <div class="stars-layer"></div>
+    <div class="content-overlay"></div>
+
+    <!-- Стикеры -->
+    <div class="stickers-container" id="stickersContainer"></div>
+
+    <!-- Меню -->
+    <header class="navbar" id="navbar">
+        <div class="nav-left"><a href="#" class="logo">Проектная</a></div>
+        <div class="nav-center">
+            <nav class="nav-links">
+                <a href="site31.html">Проекты</a>
+                <a href="gallery.html">Галерея</a>
+                <a href="https://t.me/Eg20go" target="_blank">Telegram</a>
+            </nav>
+        </div>
+        <div class="nav-right"><div class="menu-toggle" id="menuToggle">☰</div></div>
+    </header>
+
+    <!-- Основной контент -->
+    <div class="page-wrapper">
+        
+        <!-- ЛЕВАЯ ЧАСТЬ: Кнопки действий -->
+        <div class="left-col hero-text">
+            <h1>Добро пожаловать на борт</h1>
+            <p>Сайт с идеями лучших очкодронов</p>
+            
+            <div class="btn-group">
+                <a href="https://proektnaya.github.io/proektnaya/site31.html" class="btn">Смотреть проекты</a>
+                <a href="https://vk.ru/wall743658981_16" class="btn btn-outline">Смотреть полёт</a>
+            </div>
+        </div>
+    <h2>У нас пока 1 проект поэтому вас сразу кидает на него, постараемся это исправить!</h2>
+
+        <!-- ПРАВАЯ ЧАСТЬ: Визуал -->
+
+
+        <div id="vk_post_743658981_16"></div>
+<script type="text/javascript" src="https://vk.ru/js/api/openapi.js"></script>
+<script type="text/javascript">
+  (function() {
+    VK.Widgets.Post("vk_post_743658981_16", 743658981, 16, "56jS2b0UUDZksUX32w_JDUu-QLIq");
+  }());
+</script>
+
+
+<!--         <div class="right-col">
+           <section class="photo-stack">
+                <details class="photo-item-details"><summary><img src="https://vk.ru/wall743658981_16" alt="Это круто!"></summary></details>
+               <details class="photo-item-details"><summary><img src="https://via.placeholder.com/400x600/DDDDFF/222222?text=Полеты+FPS" alt="Вид от первого лица"></summary></details>
+                
+           -->
+
+    </div>
+
+    <script>
+        // === 1. СТИКЕРЫ ===
+        const stickersContainer = document.getElementById('stickersContainer');
+        const stickerPaths = [
+            'https://copterparts.ru/wp-content/uploads/2023/07/dronephantomprov2-1024x341.webp',
+            'https://geoscan.education/pioneer/frontend/assets/pages/pioneer-mini-2/img.png',
+            'https://store.djicyprus.com/wp-content/uploads/2025/09/DJI-Mini-5-PRO-unfolded-front-view-22%C2%B0-low-angle-%E5%B1%95%E5%BC%80%E6%AD%A3%E9%9D%A2%E4%BF%AF%E8%A7%8622%E5%BA%A6-1-scaled.png',
+            'https://media.moddb.com/images/games/1/58/57651/Stars_mah_dude.png'
+        ];
+        function getRandomArbitrary(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+
+        for(let i = 0; i < 15; i++) {
+            const img = document.createElement('img');
+            img.src = stickerPaths[Math.floor(Math.random() * stickerPaths.length)];
+            img.className = 'sticker';
+            const size = getRandomArbitrary(50, 100);
+            img.style.width = size + 'px';
+            img.style.height = size + 'px';
+            img.style.left = getRandomArbitrary(0, window.innerWidth - size) + 'px';
+            img.style.top = getRandomArbitrary(0, window.innerHeight - size) + 'px';
+            img.style.transform = `rotate(${getRandomArbitrary(-20, 20)}deg)`;
+            img.style.opacity = getRandomArbitrary(0.6, 1);
+            stickersContainer.appendChild(img);
+        }
+
+        // === 2. МЕНЮ ===
+        let lastScrollTop = 0;
+        const navbar = document.getElementById('navbar');
+        const menuToggle = document.getElementById('menuToggle');
+
+        window.addEventListener('scroll', () => {
+            let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            if (scrollTop > lastScrollTop && scrollTop > 100){
+                navbar.classList.add('hidden');
+            } else {
+                navbar.classList.remove('hidden');
+            }
+            if (navbar.classList.contains('active') && scrollTop > 50) {
+                navbar.classList.remove('active');
+            }
+            lastScrollTop = scrollTop;
+        });
+
+        menuToggle.addEventListener('click', () => {
+            navbar.classList.toggle('active');
+        });
+
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', () => {
+                navbar.classList.remove('active');
+            });
+        });
+    </script>
+
+</body>
+</html>

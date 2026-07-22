@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ыыы лендинг</title>
+
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <style>
+        /* --- 1. ГЛУБОКОЕ ЗВЕЗДНОЕ НЕБО С ПАРАЛЛАКСОМ --- */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #000; 
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .stars-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 200%;
+            height: 200%;
+            pointer-events: none;
+            z-index: -2;
+            animation: moveStarsBg 200s linear infinite;
+        }
+
+        .stars-layer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(1px 1px at 10% 20%, rgba(255,255,255,0.8), transparent),
+                radial-gradient(1px 1px at 20% 40%, rgba(255,255,255,0.6), transparent),
+                radial-gradient(1px 1px at 30% 10%, rgba(255,255,255,0.9), transparent),
+                radial-gradient(1px 1px at 40% 70%, rgba(255,255,255,0.5), transparent),
+                radial-gradient(1px 1px at 50% 30%, rgba(255,255,255,0.7), transparent),
+                radial-gradient(1px 1px at 60% 80%, rgba(255,255,255,0.4), transparent),
+                radial-gradient(1px 1px at 70% 50%, rgba(255,255,255,0.8), transparent),
+                radial-gradient(1px 1px at 80% 60%, rgba(255,255,255,0.6), transparent),
+                radial-gradient(1px 1px at 90% 20%, rgba(255,255,255,0.9), transparent);
+            opacity: 0.6;
+        }
+
+        .stars-layer::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(1.5px 1.5px at 15% 25%, rgba(255,255,255,1), transparent),
+                radial-gradient(2px 2px at 55% 45%, rgba(255,255,255,1), transparent),
+                radial-gradient(1px 1px at 85% 15%, rgba(255,255,255,1), transparent);
+            opacity: 0.9;
+        }
+
+        @keyframes moveStarsBg {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(-50%, -50%); }
+        }
+
+        .content-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.45);
+            z-index: -1;
+        }
+
+        /* --- 2. СТИКЕРЫ --- */
+        .stickers-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .sticker {
+            position: absolute;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            transition: transform 0.3s ease;
+            pointer-events: auto;
+        }
+
+        .sticker:hover {
+            transform: scale(1.1) rotate(5deg);
+            z-index: 20;
+        }
+
+        /* --- 3. МЕНЮ --- */
+/* --- МЕНЮ С РАЗДЕЛЕНИЕМ НА ЗОНЫ --- */
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: rgba(15, 15, 25, 0.95);
+    backdrop-filter: blur(10px);
+    padding: 15px 40px;
+    display: flex; /* Включаем гибкую сетку */
+    justify-content: space-between; /* Распределяем блоки по краям */
+    align-items: center;
+    z-index: 100;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translateY(0);
+}
+
+/* Левая зона не дает лого сжиматься */
+.nav-left {
+    flex-shrink: 0;
+}
+
+.logo {
+    color: white;
+    font-weight: bold;
+    font-size: 1.4rem;
+    text-decoration: none;
+}
+
+/* Центральная зона занимает всё свободное место В ЦЕНТРЕ */
+.nav-center {
+    flex-grow: 1;
+    display: flex;
+    justify-content: center; /* Центрируем именно здесь */
+}
+
+.nav-links {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: 30px;
+}
+
+.nav-links a {
+    color: #e2e8f0;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s ease;
+    white-space: nowrap;
+}
+
+.nav-links a:hover {
+    color: #667eea;
+}
+
+/* Правая зона фиксирует кнопку справа */
+.nav-right {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+}
+
+.menu-toggle {
+    cursor: pointer;
+    color: white;
+    font-size: 2rem;
+    line-height: 1;
+    display: block; /* На десктопе она видна, скроется позже через @media */
+}
+
+/* --- МОБИЛЬНОЕ МЕНЮ --- */
+@media (max-width: 900px) {
+    .page-wrapper { grid-template-columns: 1fr; padding: 20px; margin-top: 100px; }
+    .left-col { position: static; height: auto; overflow-y: visible; padding-right: 0; }
+
+    .navbar {
+        padding: 15px 20px;
+        flex-wrap: wrap;
+    }
+
+    .nav-left, .nav-right {
+        width: 100%; /* Занимают полную строку */
+        justify-content: space-between;
+    }
+
+    .nav-center {
+        order: -1; /* Перемещаем центр (ссылки) НАВЕРХ перед левой частью */
+        width: 100%;
+        margin-bottom: 15px;
+        justify-content: flex-start;
+    }
+
+    .nav-links {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: rgba(15, 15, 25, 0.98);
+        padding: 40px 20px 20px 20px;
+        flex-direction: column;
+        text-align: center;
+        border-bottom-left-radius: 12px;
+        border-bottom-right-radius: 12px;
+        z-index: 99;
+    }
+
+    .navbar.active .nav-links {
+        display: flex;
+    }
+
+    .navbar.active .nav-links a {
+        display: block;
+        margin: 12px 0;
+        font-size: 1.1rem;
+    }
+
+    .menu-toggle {
+        font-size: 2.5rem;
+    }
+
+    .navbar.active .menu-toggle {
+        transform: rotate(45deg); 
+    }
+}
+
+    /* Вращаем иконку при открытии меню для красоты */
+    .navbar.active .menu-toggle {
+        transform: rotate(45deg); 
+    }
+
+
+/* 3. Дополнительная защита для средних экранов (между 768px и 900px) */
+        /* --- РАСШИРЕНИЕ МЕНЮ ДЛЯ ПОМЕЩЕНИЯ ВСЕХ КНОПОК --- */
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+
+        @media (max-width: 900px) {
+            .page-wrapper {
+                grid-template-columns: 1fr;
+                padding: 20px;
+                margin-top: 100px;
+            }
+
+            .left-col {
+                position: static;
+                top: 0;
+                height: auto;
+                overflow-y: visible;
+                padding-right: 0;
+            }
+
+            .navbar {
+                padding: 15px 20px;
+                flex-wrap: nowrap; 
+                align-items: center;
+            }
+
+            .logo {
+                font-size: 1.3rem;
+                white-space: nowrap;
+            }
+
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: rgba(15, 15, 25, 0.98);
+                padding: 40px 20px 20px 20px; 
+                flex-direction: column;
+                text-align: center;
+                border-bottom-left-radius: 12px;
+                border-bottom-right-radius: 12px;
+            }
+
+            .navbar.active .nav-links {
+                display: flex;
+            }
+
+            .navbar.active .nav-links a {
+                display: block;
+                margin: 12px 0;
+                font-size: 1.1rem;
+            }
+
+            .menu-toggle {
+                display: block;
+                color: white;
+                font-size: 2rem;
+                transition: transform 0.3s ease;
+            }
+
+            .navbar.active .menu-toggle {
+                transform: rotate(45deg); 
+            }
+        }
+
+        @media (max-width: 850px) and (min-width: 768px) {
+            .nav-links a {
+                margin-left: 20px !important;
+                font-size: 0.95rem;
+            }
+        }
+
+        /* --- 4. КОНТЕНТ: ФИКСИРОВАННЫЙ ТЕКСТ И ПРОКРУЧИВАЕМЫЕ КАРТИНКИ --- */
+        
+        .page-wrapper {
+            max-width: 1400px;
+            margin: 120px auto 60px auto;
+            padding: 40px 20px;
+            display: grid;
+            grid-template-columns: 1fr 1.1fr;
+            gap: 50px;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* ЛЕВАЯ ЧАСТЬ — ЗАБЛОКИРОВАНА НА ЭКРАНЕ (ОБРАТИ ВНИМАНИЕ!) */
+        .left-col {
+            order: 1;
+            position: sticky;
+            top: 120px; /* Прижимаем к верху под меню */
+            align-self: start;
+            height: calc(100vh - 140px); 
+            overflow-y: auto; 
+            padding-right: 10px;
+        }
+
+        .left-col::-webkit-scrollbar {
+            width: 0;
+        }
+
+        .left-col h1 {
+            font-size: 2.2rem;
+            margin-bottom: 15px;
+            color: white;
+        }
+
+        .left-col p.subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 40px;
+            color: #cbd5e0;
+        }
+
+        footer .explanation {
+            background-color: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(8px);
+            padding: 30px;
+            border-radius: 12px;
+            border-left: 6px solid #667eea;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            color: #e2e8f0;
+            margin-top: 40px;
+        }
+
+        footer h2 { color: white; }
+        footer p { color: #cbd5e0; font-size: 1.05rem; }
+
+        /* ПРАВАЯ ЧАСТЬ — ПРОКРУЧИВАЕТСЯ СО СТРАНИЦЕЙ */
+        .right-col {
+            order: 2;
+            position: relative;
+            align-self: start;
+        }
+
+        .photo-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .photo-item-details {
+            border: none;
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            background-color: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .photo-item-details summary::-webkit-details-marker { display: none; }
+        .photo-item-details summary::before { content: ''; display: block; }
+
+        .photo-item-details img {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+            border-radius: 12px;
+            transition: transform 0.5s ease;
+        }
+
+        .photo-item-details:hover img {
+            transform: scale(1.05); 
+        }
+
+        .photo-item-details:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 
+                        0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .photo-item-details[open] {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: black;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            transform: none !important;
+            box-shadow: none;
+            cursor: zoom-out;
+        }
+
+        .photo-item-details[open] img {
+            max-width: 100%;
+            max-height: 100%;
+            aspect-ratio: auto;
+            border-radius: 0;
+            transform: none !important;
+        }
+
+        @media (max-width: 900px) {
+            .page-wrapper {
+                grid-template-columns: 1fr;
+                padding: 20px;
+                margin-top: 100px;
+            }
+
+            /* На мобильных фиксируем текст сверху, картинки идут следом */
+            .left-col {
+                position: static;
+                top: 0;
+                height: auto;
+                overflow-y: visible;
+                padding-right: 0;
+            }
+
+            .navbar {
+                padding: 15px 20px;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .navbar.active .nav-links {
+                display: block;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: rgba(15, 15, 25, 0.98);
+                padding: 20px;
+            }
+
+            .navbar.active .nav-links a {
+                display: block;
+                text-align: center;
+                margin: 15px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Звездное небо -->
+    <div class="stars-layer"></div>
+    <div class="content-overlay"></div>
+
+    <!-- Стикеры -->
+    <div class="stickers-container" id="stickersContainer"></div>
+
+    <!-- Меню -->
+    <header class="navbar" id="navbar">
+    <!-- ЛЕВАЯ ЧАСТЬ -->
+    <div class="nav-left">
+        <a href="https://proektnaya.github.io/proektnaya/" class="logo">Проектная</a>
+    </div>
+
+    <!-- ЦЕНТРАЛЬНАЯ ЧАСТЬ (ссылки) -->
+    <div class="nav-center">
+        <nav class="nav-links">
+            <a href="https://t.me/@Eg20go" target="_blank">Telegram</a>
+            <a href="https://vk.ru/e__rom" target="_blank">VK</a>
+        </nav>
+    </div>
+
+    <!-- ПРАВАЯ ЧАСТЬ (иконка) -->
+    <div class="nav-right">
+        <div class="menu-toggle" id="menuToggle">
+            ☰
+        </div>
+    </div>
+</header>
+
+    <!-- Основной контент -->
+    <div class="page-wrapper">
+        
+        <!-- ЭТОТ БЛОК ТЕПЕРЬ ЗАФИКСИРОВАН -->
+        <div class="left-col">
+            <header>
+                <h1>#1 Дрон - Одуванчик</h1>
+                <p class="subtitle">Состояние: идея</p>
+            </header>
+
+            <footer>
+                <div class="explanation" id="about">
+                    <h2>О проекте</h2>
+                    <p>Дрон - Одуванчик — это дрон разведчик, запускается либо с самолёта - носителя, либо любым другим способом метания
+
+                   Связь с автором в шапке страницы</p>
+                </div>
+            </footer>
+            <h2>Нажмите на фото чтобы посмотреть, CTRL + колесо мыши для отдаления</h2>
+            <h2>↓Ниже ещё чертёж↓</h2>
+        </div>
+
+        <!-- А ЭТОТ БЛОК УЕЗЖАЕТ ВВЕРХ -->
+        <div class="right-col">
+            <section class="photo-stack">
+                <details class="photo-item-details"><summary><img src="https://i.yapx.ru/eA8ef.jpg" alt="'Чертёж' Д - О"></summary></details>
+                <details class="photo-item-details"><summary><img src="https://i.yapx.ru/eA8eg.jpg" alt="'Чертёж' носителя"></summary></details>
+<!--                <details class="photo-item-details"><summary><img src="https://via.placeholder.com/400x600/F0F4FF/2B6CB0?text=Чертеж" alt="Чертеж"></summary></details>
+                <details class="photo-item-details"><summary><img src="https://via.placeholder.com/400x600/E6FFFA/319795?text=Схема" alt="Схема"></summary></details>
+                -->
+            </section>
+        </div>
+
+    </div>
+
+    <script>
+        // === 1. АВТОМАТИЧЕСКИЕ СТИКЕРЫ ===
+        const stickersContainer = document.getElementById('stickersContainer');
+        const stickerPaths = [
+            'https://copterparts.ru/wp-content/uploads/2023/07/dronephantomprov2-1024x341.webp',
+            'https://geoscan.education/pioneer/frontend/assets/pages/pioneer-mini-2/img.png',
+            'https://store.djicyprus.com/wp-content/uploads/2025/09/DJI-Mini-5-PRO-unfolded-front-view-22%C2%B0-low-angle-%E5%B1%95%E5%BC%80%E6%AD%A3%E9%9D%A2%E4%BF%AF%E8%A7%8622%E5%BA%A6-1-scaled.png',
+            'https://media.moddb.com/images/games/1/58/57651/Stars_mah_dude.png'
+        ];
+
+        function getRandomArbitrary(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+
+        for(let i = 0; i < 15; i++) {
+            const img = document.createElement('img');
+            img.src = stickerPaths[Math.floor(Math.random() * stickerPaths.length)];
+            img.className = 'sticker';
+            const size = getRandomArbitrary(50, 100);
+            img.style.width = size + 'px';
+            img.style.height = size + 'px';
+            img.style.left = getRandomArbitrary(0, window.innerWidth - size) + 'px';
+            img.style.top = getRandomArbitrary(0, window.innerHeight - size) + 'px';
+            img.style.transform = `rotate(${getRandomArbitrary(-20, 20)}deg)`;
+            img.style.opacity = getRandomArbitrary(0.6, 1);
+            stickersContainer.appendChild(img);
+        }
+
+        // === 2. СКРЫВАЮЩЕЕСЯ МЕНЮ ===
+        let lastScrollTop = 0;
+        const navbar = document.getElementById('navbar');
+        const menuToggle = document.getElementById('menuToggle');
+
+        window.addEventListener('scroll', () => {
+            let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            
+            if (scrollTop > lastScrollTop && scrollTop > 100){
+                navbar.classList.add('hidden');
+            } else {
+                navbar.classList.remove('hidden');
+            }
+            
+            if (navbar.classList.contains('active') && scrollTop > 50) {
+                navbar.classList.remove('active');
+            }
+
+            lastScrollTop = scrollTop;
+        });
+
+        menuToggle.addEventListener('click', () => {
+            navbar.classList.toggle('active');
+        });
+
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', () => {
+                navbar.classList.remove('active');
+            });
+        });
+    </script>
+
+</body>
+</html>
