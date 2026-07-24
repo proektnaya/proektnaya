@@ -151,6 +151,42 @@
             .projects-grid { grid-template-columns: 1fr; }
         }
 
+/* Если меню не работает снизу удалить всё */
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: rgba(15, 15, 25, 0.95);
+    backdrop-filter: blur(10px);
+    padding: 15px 40px;
+    display: flex; /* Включаем гибкую сетку */
+    justify-content: space-between; /* Распределяем блоки по краям */
+    align-items: center;
+    z-index: 100;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translateY(0);
+}
+
+/* Левая зона не дает лого сжиматься */
+.nav-left {
+    flex-shrink: 0;
+}
+
+.logo {
+    color: white;
+    font-weight: bold;
+    font-size: 1.4rem;
+    text-decoration: none;
+}
+
+/* Центральная зона занимает всё свободное место В ЦЕНТРЕ */
+.nav-center {
+    flex-grow: 1;
+    display: flex;
+    justify-content: center; /* Центрируем именно здесь */
+}
+        
 @media (max-width: 900px) {
     .page-wrapper { grid-template-columns: 1fr; padding: 20px; margin-top: 100px; }
     .left-col { position: static; height: auto; overflow-y: visible; padding-right: 0; }
