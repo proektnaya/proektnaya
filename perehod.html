@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мои проекты — МойFPV</title>
+
+    <!-- Шрифт иконок -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    
+    <!-- Иконка сайта -->
+    <link rel="icon" href="favicon.png" type="image/png">
+
+    <style>
+        /* --- 1. ЗВЕЗДНОЕ НЕБО И СТИКЕРЫ (копируем из главной) --- */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #000; 
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .stars-layer, .content-overlay, .stickers-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .stars-layer { z-index: -2; animation: moveStarsBg 200s linear infinite; }
+        .stars-layer::before {
+            content: ''; position: absolute; inset: 0;
+            background: radial-gradient(1px 1px at 20% 15%, rgba(255,255,255,0.9), transparent),
+                        radial-gradient(1px 1px at 40% 60%, rgba(255,255,255,0.6), transparent);
+            opacity: 0.6;
+        }
+        .stars-layer::after {
+            content: ''; position: absolute; inset: 0;
+            background: radial-gradient(2px 2px at 10% 30%, rgba(255,255,255,1), transparent);
+            opacity: 0.9;
+        }
+        @keyframes moveStarsBg { 0% { transform: translate(0, 0); } 100% { transform: translate(-50%, -50%); } }
+        .content-overlay { z-index: -1; background: rgba(0, 0, 0, 0.45); }
+        
+        .sticker {
+            position: absolute; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            transition: transform 0.3s ease; pointer-events: auto;
+        }
+        .sticker:hover { transform: scale(1.1) rotate(5deg); z-index: 20; }
+
+        /* --- 2. МЕНЮ --- */
+        .navbar {
+            position: fixed; top: 0; left: 0; width: 100%; z-index: 100;
+            background: rgba(15, 15, 25, 0.95); backdrop-filter: blur(10px);
+            padding: 15px 40px; display: flex; justify-content: space-between; align-items: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); transform: translateY(0);
+        }
+        .navbar.hidden { transform: translateY(-100%); }
+        .logo { color: white; font-weight: bold; font-size: 1.4rem; text-decoration: none; }
+        .nav-links a { color: #e2e8f0; text-decoration: none; margin-left: 30px; font-weight: 500; transition: color 0.2s; }
+        .nav-links a:hover { color: #667eea; }
+        .menu-toggle { display: none; cursor: pointer; color: white; font-size: 2rem; }
+
+        /* --- 3. ГАЛЕРЕЯ КАРТОЧЕК --- */
+        .page-wrapper {
+            max-width: 1200px; margin: 120px auto 60px auto; padding: 20px;
+            position: relative; z-index: 10;
+        }
+
+        h1.section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 50px;
+            color: white;
+        }
+
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .project-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            overflow: hidden;
+            text-decoration: none;
+            color: inherit;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+            display: block;
+            position: relative;
+        }
+
+        .project-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 10px 20px rgba(0, 0, 0, 0.2);
+            border-color: #667eea;
+        }
+
+        .card-image-wrapper {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .project-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .project-card:hover img {
+            transform: scale(1.1);
+        }
+
+        .card-content {
+            padding: 25px;
+        }
+
+        .card-title {
+            font-size: 1.4rem;
+            font-weight: bold;
+            margin: 0 0 10px 0;
+            color: #f1f5f9;
+        }
+
+        .card-desc {
+            font-size: 0.95rem;
+            color: #94a3b8;
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        /* --- АДАПТИВ --- */
+        @media (max-width: 768px) {
+            .navbar { padding: 15px 20px; }
+            .nav-links { display: none; }
+            .menu-toggle { display: block; }
+            .page-wrapper { margin-top: 100px; padding: 20px; }
+            h1.section-title { font-size: 2rem; margin-bottom: 30px; }
+            .projects-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Звезды, оверлей и стикеры -->
+    <div class="stars-layer"></div>
+    <div class="content-overlay"></div>
+    <div class="stickers-container" id="stickersContainer"></div>
+
+    <!-- Меню -->
+    <header class="navbar" id="navbar">
+        <div class="nav-left"><a href="index.html" class="logo">МойFPV</a></div>
+        <div class="nav-center">
+            <nav class="nav-links">
+                <a href="index.html">Главная</a>
+                <a href="#" style="color:#667eea;">Проекты</a>
+                <a href="gallery.html">Галерея</a>
+                <a href="https://t.me/tvoy_kanal" target="_blank">Telegram</a>
+            </nav>
+        </div>
+        <div class="nav-right"><div class="menu-toggle" id="menuToggle">☰</div></div>
+    </header>
+
+    <!-- Контент -->
+    <div class="page-wrapper">
+        <h1 class="section-title">Выбери проект</h1>
+        
+        <div class="projects-grid">
+            
+            <!-- Карточка 1 -->
+            <a href="site31.html" class="project-card">
+                <div class="card-image-wrapper">
+                    <img src="https://i.yapx.ru/eA8ef.jpg" alt="D - O">
+                </div>
+                <div class="card-content">
+                    <h3 class="card-title">#1 Дрон - Одуванчик</h3>
+                    <p class="card-desc">Мелкий дрон разведчик</p>
+                </div>
+            </a>
+
+            <!-- Карточка 2 -->
+            <a href="site4.html" class="project-card">
+                <div class="card-image-wrapper">
+                    <img src="https://i.yapx.ru/eBqjW.jpg" alt="PVO">
+                </div>
+                <div class="card-content">
+                    <h3 class="card-title">#2 Понтоны для дрона</h3>
+                    <p class="card-desc">Удержание дрона на воде (требует доработки)</p>
+                </div>
+            </a>
+
+            <!-- Карточка 3 -->
+<!--           <a href="dron-longrange.html" class="project-card">
+                <div class="card-image-wrapper">
+                    <img src="https://via.placeholder.com/600x338/F0F4FF/2B6CB0?text=Long+Range+iFlight" alt="iFrame LR">
+                </div>
+                <div class="card-content">
+                    <h3 class="card-title">Chimera Long Range</h3>
+                    <p class="card-desc">Сборка для дальних вылазок на 10km+. Время полета до 25 минут.</p>
+                </div>
+            </a>--> 
+
+            <!-- Карточка 4 -->
+<!--            <a href="custom-frame.html" class="project-card">
+                <div class="card-image-wrapper">
+                    <img src="https://via.placeholder.com/600x338/E6FFFA/319795?text=Custom+CAD" alt="Своя CAD-модель">
+                </div>
+                <div class="card-content">
+                    <h3 class="card-title">Проектирование рамы</h3>
+                    <p class="card-desc">Разработка собственной модели под микромоторы в Fusion 360.</p>
+                </div>
+            </a>-->
+
+        </div>
+    </div>
+
+    <script>
+        // === 1. АВТОМАТИЧЕСКИЕ СТИКЕРЫ ===
+        const stickersContainer = document.getElementById('stickersContainer');
+        const stickerPaths = [
+            'https://copterparts.ru/wp-content/uploads/2023/07/dronephantomprov2-1024x341.webp',
+            'https://geoscan.education/pioneer/frontend/assets/pages/pioneer-mini-2/img.png',
+            'https://store.djicyprus.com/wp-content/uploads/2025/09/DJI-Mini-5-PRO-unfolded-front-view-22%C2%B0-low-angle-%E5%B1%95%E5%BC%80%E6%AD%A3%E9%9D%A2%E4%BF%AF%E8%A7%8622%E5%BA%A6-1-scaled.png',
+            'https://media.moddb.com/images/games/1/58/57651/Stars_mah_dude.png'
+        ];
+
+        function getRandomArbitrary(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+
+        for(let i = 0; i < 15; i++) {
+            const img = document.createElement('img');
+            img.src = stickerPaths[Math.floor(Math.random() * stickerPaths.length)];
+            img.className = 'sticker';
+            const size = getRandomArbitrary(50, 100);
+            img.style.width = size + 'px';
+            img.style.height = size + 'px';
+            img.style.left = getRandomArbitrary(0, window.innerWidth - size) + 'px';
+            img.style.top = getRandomArbitrary(0, window.innerHeight - size) + 'px';
+            img.style.transform = `rotate(${getRandomArbitrary(-20, 20)}deg)`;
+            img.style.opacity = getRandomArbitrary(0.6, 1);
+            stickersContainer.appendChild(img);
+        }
+
+        // Меню
+        let lastScrollTop = 0;
+        const navbar = document.getElementById('navbar');
+        const menuToggle = document.getElementById('menuToggle');
+        window.addEventListener('scroll', () => {
+            let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            if (scrollTop > lastScrollTop && scrollTop > 100){ navbar.classList.add('hidden'); }
+            else { navbar.classList.remove('hidden'); }
+            if (navbar.classList.contains('active') && scrollTop > 50) { navbar.classList.remove('active'); }
+            lastScrollTop = scrollTop;
+        });
+        menuToggle.addEventListener('click', () => { navbar.classList.toggle('active'); });
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', () => { navbar.classList.remove('active'); });
+        });
+    </script>
+    
+<h2>Наверное скоро будет больше</h2>
+</body>
+</html>
