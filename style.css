@@ -189,7 +189,7 @@ nav.primary-nav {
   nav.primary-nav {
     position: fixed;
     inset: 68px 0 0 0;
-    background: var(--bg);
+    background: #0B1729;
     flex-direction: column;
     align-items: stretch;
     padding: 16px;
