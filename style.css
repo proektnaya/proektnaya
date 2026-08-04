@@ -186,6 +186,12 @@ nav.primary-nav {
 .nav-toggle.is-active span::after { top: 0; transform: rotate(-45deg); }
 
 @media (max-width: 720px) {
+
+   .site-header {
+    background: var(--bg); /* убираем прозрачность */
+    backdrop-filter: none;
+  } 
+
   nav.primary-nav {
     position: fixed;
     inset: 68px 0 0 0;
