@@ -108,20 +108,9 @@ h1, h2, h3 {
   position: sticky;
   top: 0;
   z-index: 40;
-  border-bottom: 1px solid var(--line);
-  /* No backdrop-filter/transform directly on this element on purpose:
-     either one turns it into a containing block for position:fixed
-     descendants (the mobile nav below), which silently breaks its
-     fixed positioning. The blurred background lives on ::before
-     instead so .primary-nav stays fixed to the viewport as intended. */
-}
-.site-header::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: -1;
   background: rgba(11, 23, 41, 0.86);
   backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
 }
 
 .site-header .wrap {
@@ -186,28 +175,9 @@ nav.primary-nav {
   height: 1px;
   background: var(--ink);
   position: relative;
-  transition: transform 0.28s cubic-bezier(.4,0,.2,1), opacity 0.2s ease, background 0.2s ease;
 }
 .nav-toggle span::before { position: absolute; top: -6px; }
 .nav-toggle span::after { position: absolute; top: 6px; }
-
-/* hamburger -> X, driven purely by the nav's own open state */
-.site-header:has(nav.primary-nav.is-open) .nav-toggle {
-  border-color: var(--hazard);
-}
-.site-header:has(nav.primary-nav.is-open) .nav-toggle span {
-  background: transparent;
-}
-.site-header:has(nav.primary-nav.is-open) .nav-toggle span::before {
-  top: 0;
-  background: var(--hazard);
-  transform: rotate(45deg);
-}
-.site-header:has(nav.primary-nav.is-open) .nav-toggle span::after {
-  top: 0;
-  background: var(--hazard);
-  transform: rotate(-45deg);
-}
 
 @media (max-width: 720px) {
   nav.primary-nav {
@@ -218,44 +188,19 @@ nav.primary-nav {
     align-items: stretch;
     padding: 16px;
     gap: 4px;
-    visibility: hidden;
+    transform: translateY(-8px);
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.22s ease, visibility 0s linear 0.22s;
+    transition: opacity 0.18s ease, transform 0.18s ease;
     border-top: 1px solid var(--line);
   }
   nav.primary-nav.is-open {
-    visibility: visible;
     opacity: 1;
+    transform: translateY(0);
     pointer-events: auto;
-    transition: opacity 0.22s ease;
   }
-  .nav-link {
-    padding: 14px 10px;
-    border-bottom: 1px dashed var(--line);
-    font-size: 15px;
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  /* staggered slide-in for each link, only while the menu is open */
-  nav.primary-nav.is-open .nav-link {
-    animation: nav-link-in 0.42s cubic-bezier(.2,.8,.2,1) forwards;
-  }
-  nav.primary-nav.is-open .nav-link:nth-child(1) { animation-delay: 0.05s; }
-  nav.primary-nav.is-open .nav-link:nth-child(2) { animation-delay: 0.1s; }
-  nav.primary-nav.is-open .nav-link:nth-child(3) { animation-delay: 0.15s; }
-  nav.primary-nav.is-open .nav-link:nth-child(4) { animation-delay: 0.2s; }
-  nav.primary-nav.is-open .nav-link:nth-child(5) { animation-delay: 0.25s; }
+  .nav-link { padding: 14px 10px; border-bottom: 1px dashed var(--line); font-size: 15px; }
   .nav-toggle { display: flex; }
-}
-
-@keyframes nav-link-in {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  nav.primary-nav.is-open .nav-link { animation: none; opacity: 1; transform: none; }
 }
 
 /* ---------- buttons ---------- */
@@ -677,3 +622,50 @@ nav.primary-nav {
   color: var(--ink-dim);
 }
 .footer-links a:hover { color: var(--blue-bright); }
+/* ---------- kamen.png clickable areas ---------- */
+.kamen-wrap {
+  position: relative;
+  display: block;
+  max-width: 100%;
+  width: 340px;
+  margin: 0 auto;
+}
+.kamen-wrap img { width: 100%; height: auto; display: block; }
+
+.kamen-hit {
+  position: absolute;
+  display: block;
+  /* границы подобраны примерно по скриншоту, при необходимости подправь % под свою картинку */
+}
+
+/* верхний камень — "Проекты смотреть пойдёшь" */
+.kamen-hit--projects {
+  left: 24%;
+  top: 2%;
+  width: 52%;
+  height: 34%;
+}
+
+/* левый нижний камень — "В FAQ забредёшь" */
+.kamen-hit--faq {
+  left: 15%;
+  top: 41%;
+  width: 45%;
+  height: 25%;
+}
+
+/* правый нижний камень — "В галерею попадёшь" */
+.kamen-hit--gallery {
+  left: 62%;
+  top: 39%;
+  width: 37%;
+  height: 27%;
+}
+
+/* нижняя надпись на камне — "Кароче динах / приглашение в телеграм" */
+.kamen-hit--telegram {
+  left: 8%;
+  top: 78%;
+  width: 88%;
+  height: 20%;
+}
