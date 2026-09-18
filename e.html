@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Е</title>
+  <link rel="stylesheet" href="portfolio.css">
+</head>
+<body>
+  <div class="noise"></div>
+  <header class="site-header"><div class="wrap header-inner">
+    <a class="brand" href="portfolio.html"><span class="crosshair"></span>ПРОЕКТНАЯ</a>
+    <nav class="primary-nav"><a class="nav-link is-current" href="portfolio.html">← вернуться в каплю адекватности</a><a class="nav-link" href="index.html">Главная</a></nav>
+  </div></header>
+
+  <main id="profile"></main>
+
+  <footer class="site-footer"><div class="wrap"><p>© Проектная. Под моей защитой</p><a href="portfolio.html">Все люди ↑</a></div></footer>
+  <script>
+  const people = {
+    e:{name:'Е',role:'ЧЕЛОВЕК',img:'EMA_3.png',intro:'Гений миллиардер плейбой филантроп',stats:[['15 лет',''],['200','(возможно)'],['3','года успешного получения зп за то что я есть']],achievements:['Вышел на регион в "Пилоты Будущего"','2 раза был в ВДЦ "Орлёнок"','Финалист всероссийского конкурса по робототехнике "Hello pioneer! 2025-2026"']},
+    m:{name:'М',role:'ЧЕЛОВЕКР',img:'EMA_1.png',intro:'Его к власти не пускать, иначе кого он будет ненавидеть?',stats:[['0','суток отсижено'],['1 млн мощи','в аутизме-похеризме'],['7','отказов девушек']],achievements:['Оппозиционер','Был в ВДЦ "Орлёнок"','Финалист всероссийского конкурса по робототехнике "Hello pioneer! 2025-2026"']},
+    a:{name:'А',role:'ЧЕРНОВЕК',img:'EMA_2.png',intro:'Рождён для службы, хорошо обращается с оружием и повестками. Уважает призывников',stats:[['15','лет работы'],['все конечности','до сих пор'],['99.9%','черный']],achievements:['Состоит в Юнармии','Был в ВДЦ "Орлёнок"','Финалист всероссийского конкурса по робототехнике "Hello pioneer! 2025-2026"']}
+  };
+  const key=new URLSearchParams(location.search).get('id')||'e', p=people[key]||people.alexey;
+  //document.title=p.name+' — Портфолио';
+  document.getElementById('profile').innerHTML=`
+  <section class="profile-hero"><div class="wrap">
+    <a class="back-link" href="portfolio.html">← Вернуться к выбору</a>
+    <div class="profile-grid">
+      <div class="profile-photo frame reveal"><div class="photo-code">PERSON / ${p.year}</div><img src="${p.img}" alt="${p.name}"></div>
+      <div class="profile-copy reveal"><div class="eyebrow">${p.role}</div><h1>${p.name}</h1><p>${p.intro}</p>
+        <div class="stats">${p.stats.map(s=>`<div><b>${s[0]}</b><span>${s[1]}</span></div>`).join('')}</div>
+      </div>
+    </div>
+  </div></section>
+  <section class="section achievements"><div class="wrap">
+    <div class="section-head reveal"><div class="eyebrow">Почему я так хорош</div><h2>Что сделано</h2></div>
+    <div class="achievement-list">${p.achievements.map((a,i)=>`<article class="achievement frame reveal"><span>${String(i+1).padStart(2,'0')}</span><h3>${a}</h3><i>Ну красавчик прям</i></article>`).join('')}</div>
+  </div></section>
+  <section class="section quote"><div class="wrap"><div class="quote-mark reveal">“</div><p class="reveal">Дальше - больше сзади</p></div></section>`;
+  </script>
+  <script src="portfolio.js"></script>
+</body>
+</html>
