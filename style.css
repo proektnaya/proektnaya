@@ -180,27 +180,44 @@ nav.primary-nav {
 .nav-toggle span::after { position: absolute; top: 6px; }
 
 @media (max-width: 720px) {
+  /* убираем backdrop-filter у шапки на мобилке — он ломает position:fixed у меню */
+  .site-header {
+    backdrop-filter: none;
+    background: #0b1729;
+  }
+
   nav.primary-nav {
     position: fixed;
-    inset: 68px 0 0 0;
-    z-index: 50;
+    top: 68px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 100;
     background: #0b1729;
     flex-direction: column;
     align-items: stretch;
     padding: 16px;
     gap: 4px;
-    transform: translateY(-8px);
+    transform: translateY(-12px);
     opacity: 0;
+    visibility: hidden;
     pointer-events: none;
-    transition: opacity 0.18s ease, transform 0.18s ease;
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
     border-top: 1px solid var(--line);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
   nav.primary-nav.is-open {
     opacity: 1;
+    visibility: visible;
     transform: translateY(0);
     pointer-events: auto;
   }
-  .nav-link { padding: 14px 10px; border-bottom: 1px dashed var(--line); font-size: 15px; }
+  .nav-link {
+    padding: 14px 10px;
+    border-bottom: 1px dashed var(--line);
+    font-size: 15px;
+  }
   .nav-toggle { display: flex; }
 }
 
