@@ -200,7 +200,7 @@ nav.primary-nav {
     gap: 4px;
     transform: translateY(-12px);
     opacity: 0;
-    visibility: hidden;
+    //*visibility: hidden;*//
     pointer-events: none;
     transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
     border-top: 1px solid var(--line);
