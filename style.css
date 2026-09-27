@@ -384,6 +384,35 @@ nav.primary-nav {
   border: 0;
 }
 
+/* ---------- presentation embed (PowerPoint "Встроить") ---------- */
+.presentation-embed {
+  position: relative;
+  padding-top: 56.25%;
+  border: 1px solid var(--line);
+  background: #000;
+}
+.presentation-embed::before,
+.presentation-embed::after {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--blue);
+  z-index: 1;
+}
+.presentation-embed::before { top: -1px; left: -1px; border-right: none; border-bottom: none; }
+.presentation-embed::after { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+.presentation-embed:hover::before,
+.presentation-embed:hover::after { border-color: var(--hazard); }
+
+.presentation-embed iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
 /* ---------- project grid ---------- */
 .project-grid {
   display: grid;

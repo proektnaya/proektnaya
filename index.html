@@ -1,14 +1,24 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
+  <!--<img src="aams.png" weight="110" height="240">
+    <h3>ㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤ3 додика</h3>-->
+
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Главная — Проектная</title>
 <link rel="icon" href="favicon.png" />
 <link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="page-transition.css" />
+<link rel="stylesheet" href="intro-fx.css" />
+
 </head>
 <body>
- 
+  
+<div id="intro-overlay" aria-hidden="true"><canvas id="intro-canvas"></canvas></div>
+
+  <script src="page-transition.js"></script>
+
 <header class="site-header">
   <div class="wrap">
     <a class="brand" href="index.html"><span class="crosshair"></span>ПРОЕКТНАЯ</a>
@@ -26,7 +36,7 @@
 
 <section class="hero">
   <div class="hero-media">
-    <video autoplay muted loop playsinline poster="favicon.png">
+    <video autoplay muted loop playsinline poster="миньоны.gif">
       <source src="intr/o.mp4" type="video/mp4" />
     </video>
   </div>
@@ -72,6 +82,7 @@
   <div class="wrap">
     <a href="ami.jpg"><p>© Проектная. Под моей защитой — плагиаторы идите нахер </p></a>
     <div class="footer-links">
+      <a href="portfolio.html"><h7>Наши люди</h7></a>
       <a href="https://t.me/zmeygorinichochko" target="_blank" rel="noopener">Telegram</a>
       <a href="perehod.html">Проекты</a>
       <a href="faq.html">Вопрос?</a>
@@ -97,5 +108,6 @@
 </footer>
 
 <script src="app.js"></script>
+<script src="intro.js" defer></script>
 </body>
 </html>
