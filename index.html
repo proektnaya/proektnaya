@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <!--<img src="aams.png" weight="110" height="240">
+    <h3>ㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤ3 додика</h3>-->
+
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Главная — Проектная</title>
+<link rel="icon" href="favicon.png" />
+<link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="page-transition.css" />
+<link rel="stylesheet" href="intro-fx.css" />
+
+<style>
+/* ---------- секретный архив (пасхалка над шапкой) ---------- */
+.secret-archive {
+  position: relative;
+  z-index: 10;
+  height: 85vh;
+  height: 85svh;
+  overflow: hidden;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+  --p: 0; /* прогресс раскрытия 0..1, задаётся из JS */
+}
+/* размытый фон из того же фото, чтобы по бокам от квадрата не было пустоты */
+.secret-archive::before {
+  content: '';
+  position: absolute;
+  inset: -10%;
+  background: url('secret.jpg') center / cover no-repeat;
+  filter: blur(28px) brightness(0.35);
+}
+/* квадратное фото по центру */
+.secret-photo {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: min(64vmin, 420px);
+  aspect-ratio: 1 / 1;
+  background: var(--bg-elevated) url('kote.png') center / cover no-repeat;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  transform: translate(-50%, -50%) scale(calc(0.8 + 0.2 * var(--p)));
+  filter: blur(calc((1 - var(--p)) * 10px)) brightness(calc(0.35 + 0.65 * var(--p)));
+  will-change: transform, filter;
+}
+.secret-shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(11,23,41,.92) 0%, rgba(11,23,41,0) 50%);
+  opacity: var(--p);
+}
+.secret-caption {
+  position: absolute;
+  left: 0; right: 0;
+  bottom: 72px;
+  text-align: center;
+  color: var(--ink);
+  opacity: calc((var(--p) - 0.35) * 1.6);
+  transform: translateY(calc((1 - var(--p)) * 30px));
+}
+.secret-caption b { display: block; font-size: 1.6rem; }
+.secret-caption span { color: var(--ink-dim); font-size: .95rem; }
+
+/* кружок со стрелкой у нижнего края — подсказка «потяни», как в Telegram */
+.secret-handle {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  width: 40px; height: 40px;
+  margin-left: -20px;
+  border-radius: 50%;
+  border: 1px solid var(--blue);
+  background: rgba(11,23,41,.7);
+  color: var(--blue-bright);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  transform: rotate(calc(var(--p) * 180deg));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .secret-photo { filter: none; transform: translate(-50%, -50%); }
+}
+</style>
+</head>
+<body>
+  
+<div id="intro-overlay" aria-hidden="true"><canvas id="intro-canvas"></canvas></div>
+
+  <script src="page-transition.js"></script>
+
+<!-- СЕКРЕТНЫЙ АРХИВ: скрыт выше стартовой позиции, открывается прокруткой/свайпом вверх -->
+<div class="secret-archive" id="secretArchive" aria-hidden="true">
+  <div class="secret-photo"><img src="kote.png"></div>
+  <div class="secret-shade"></div>
+  <div class="secret-caption">
+    <b>опаа</b>
+    <span>зря я туда полеез...</span>
+  </div>
+  <div class="secret-handle">↓</div>
+</div>
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="index.html"><span class="crosshair"></span>ПРОЕКТНАЯ</a>
+    <button class="nav-toggle" aria-label="Меню"><span></span></button>
+    <nav class="primary-nav">
+      <a class="nav-link is-current" href="index.html">Главная</a>
+      <a class="nav-link" href="perehod.html">Проекты</a>
+      <a class="nav-link" href="gallery.html">Галерея</a>
+      <a class="nav-link" href="https://t.me/zmeygorinichochko" target="_blank" rel="noopener">Telegram</a>
+      <a class="nav-link" href="novosti.html" target="_blank" rel="noopener">Всякое</a>
+      <a class="nav-link" href="faq.html">Вопрос?</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-media">
+    <video autoplay muted loop playsinline poster="миньоны.gif">
+      <source src="intr/o.mp4" type="video/mp4" />
+    </video>
+  </div>
+  <div class="hero-content wrap">
+    <div class="eyebrow">Главная &nbsp;·&nbsp; тут</div>
+    <h1>Идеи лучших <span class="accent">очкодронов</span></h1>
+    <p class="lead">Хернёй маемся</p>
+    <div class="btn-row">
+      <a class="btn btn-solid" href="perehod.html">Смотреть проекты</a>
+      <a class="btn" href="gallery.html">Галерея</a>
+    </div>
+  </div>
+</section>
+
+<div class="marquee">
+  <div class="marquee-track">
+    ОЧКО <span>·</span> ОЧКО <span>·</span> ОЧКО <span>·</span> ОЧКО <span>·</span>
+    ОЧКО <span>·</span> ОЧКО <span>·</span> ОЧКО <span>·</span> ОЧКО <span>·</span>
+    ОЧКО <span>·</span> ОЧКО <span>·</span> ОЧКО <span>·</span> ОЧКО <span>·</span>
+    ОЧКО <span>·</span> ОЧКО <span>·</span> ОЧКО <span>·</span> ОЧКО <span>·</span>
+    ОЧКО <span>·</span> ОЧКО <span>·</span> ОЧКО <span>·</span> ОЧКО <span>·</span>
+    ОЧКО <span>·</span> ОЧКО <span>·</span> ОЧКО <span>·</span> ОЧКО <span>·</span>
+    ОЧКО <span>·</span> ОЧКО <span>·</span> ОЧКО <span>·</span> ОЧКО <span>·</span>
+    ОЧКО <span>·</span> ОЧКО <span>·</span> ОЧКО <span>·</span> ОЧКО <span>·</span>
+    ОЧКО <span>·</span> ОЧКО <span>·</span> ОЧКО <span>·</span> ОЧКО <span>·</span>
+    
+  </div>
+</div>
+
+<section class="section">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">Полёты</div>
+      <h2>Видео с полётом</h2>
+    </div>
+    <div class="video-frame">
+      <iframe src="https://vkvideo.ru/video_ext.php?oid=743658981&id=456239034&hash=b91aca3d878cdcd7&hd=3&autoplay=0" allow="autoplay; encrypted-media; fullscreen" allowfullscreen></iframe>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <a href="ami.jpg"><p>© Проектная. Под моей защитой — плагиаторы идите нахер </p></a>
+    <div class="footer-links">
+      <a href="portfolio.html"><h7>Наши люди</h7></a>
+      <a href="https://t.me/zmeygorinichochko" target="_blank" rel="noopener">Telegram</a>
+      <a href="perehod.html">Проекты</a>
+      <a href="faq.html">Вопрос?</a>
+    </div>
+  </div>
+
+  <br>
+  <br>
+  <br>
+
+<!--    <h1>Ах да</h1>
+    <h1>вот карта сайта</h1>
+    <br>
+      <div class="kamen-wrap">
+        <img src="kamen.png" alt="kamen" loading="lazy" />
+        <a class="kamen-hit kamen-hit--projects" href="perehod.html" aria-label="Проекты"></a>
+        <a class="kamen-hit kamen-hit--faq" href="faq.html" aria-label="FAQ"></a>
+        <a class="kamen-hit kamen-hit--gallery" href="gallery.html" aria-label="Галерея"></a>
+        <a class="kamen-hit kamen-hit--telegram" href="https://t.me/zmeygorinichochko" target="_blank" rel="noopener" aria-label="Телеграм"></a>
+      </div>-->
+
+ 
+</footer>
+
+<script>
+(function () {
+  const archive = document.getElementById('secretArchive');
+  if (!archive) return;
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+
+  let H = archive.offsetHeight;
+  let touching = false, timer = null, lastY = H, dir = 0;
+
+  // instant — потому что в style.css у html стоит scroll-behavior: smooth
+  const goHome    = () => window.scrollTo({ top: H, behavior: 'instant' });
+  const goOpen    = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+  const goClosed  = () => window.scrollTo({ top: H, behavior: 'smooth' });
+
+  // Держим стартовую позицию, пока идёт интро, и ставим её ещё раз, когда оно закончилось
+  function overlayGone() {
+    const o = document.getElementById('intro-overlay');
+    if (!o || !document.body.contains(o)) return true;
+    const cs = getComputedStyle(o);
+    return cs.display === 'none' || cs.visibility === 'hidden' || parseFloat(cs.opacity) === 0;
+  }
+  let iv = null, ticks = 0;
+  const stopHold = () => { if (iv) { clearInterval(iv); iv = null; } };
+  function holdHome() {
+    goHome();
+    iv = setInterval(() => {
+      goHome();
+      if (overlayGone() || ++ticks > 150) stopHold();
+    }, 100);
+  }
+  ['wheel', 'touchstart', 'keydown'].forEach(e =>
+    window.addEventListener(e, stopHold, { passive: true, once: true }));
+
+  goHome();
+  window.addEventListener('load', holdHome);
+  window.addEventListener('pageshow', e => { if (e.persisted) goHome(); });
+  window.addEventListener('resize', () => { H = archive.offsetHeight; });
+
+  function update() {
+    const y = window.pageYOffset || document.documentElement.scrollTop;
+    archive.style.setProperty('--p', Math.min(1, Math.max(0, 1 - y / H)).toFixed(3));
+    if (y !== lastY) dir = y < lastY ? -1 : 1; // -1 вверх, 1 вниз
+    lastY = y;
+    clearTimeout(timer);
+    timer = setTimeout(settle, 140);
+  }
+
+  // Доводчик: после остановки шторка либо открывается, либо закрывается
+  function settle() {
+    if (touching) return;
+    const y = window.pageYOffset || document.documentElement.scrollTop;
+    if (y <= 0 || y >= H) return;
+    const p = 1 - y / H;
+    if (dir < 0) { p > 0.3 ? goOpen() : goClosed(); }
+    else         { p < 0.7 ? goClosed() : goOpen(); }
+  }
+
+  window.addEventListener('scroll', update, { passive: true });
+  window.addEventListener('touchstart', () => { touching = true; }, { passive: true });
+  window.addEventListener('touchend', () => { touching = false; timer = setTimeout(settle, 60); }, { passive: true });
+  update();
+})();
+</script>
+
+<script src="app.js"></script>
+<script src="intro.js" defer></script>
+</body>
+</html>
