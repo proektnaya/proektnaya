@@ -14,22 +14,31 @@
 
 <style>
 /* ---------- секретный архив (пасхалка над шапкой) ---------- */
+html { overscroll-behavior-y: contain; overflow-anchor: none; }
+
+/* по умолчанию высота 0 — на загрузке его просто нет; --h задаёт JS при «потяни вниз» на самом верху */
 .secret-archive {
   position: relative;
   z-index: 10;
-  height: 85vh;
-  height: 85svh;
+  height: var(--h, 0px);
   overflow: hidden;
   background: var(--bg);
-  border-bottom: 1px solid var(--line);
-  --p: 0; /* прогресс раскрытия 0..1, задаётся из JS */
+  --p: 0; /* прогресс раскрытия 0..1 */
 }
-/* размытый фон из того же фото, чтобы по бокам от квадрата не было пустоты */
-.secret-archive::before {
+.secret-archive.snap { transition: height .45s cubic-bezier(.2, .8, .2, 1); }
+
+.secret-inner {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: var(--H, 85vh);
+  border-bottom: 1px solid var(--line);
+}
+/* размытый фон из того же фото */
+.secret-inner::before {
   content: '';
   position: absolute;
   inset: -10%;
-  background: url('secret.jpg') center / cover no-repeat;
+  background: url('kote.png') center / cover no-repeat;
   filter: blur(28px) brightness(0.35);
 }
 /* квадратное фото по центру */
@@ -63,8 +72,6 @@
 }
 .secret-caption b { display: block; font-size: 1.6rem; }
 .secret-caption span { color: var(--ink-dim); font-size: .95rem; }
-
-/* кружок со стрелкой у нижнего края — подсказка «потяни», как в Telegram */
 .secret-handle {
   position: absolute;
   left: 50%;
@@ -79,8 +86,8 @@
   font-size: 20px;
   transform: rotate(calc(var(--p) * 180deg));
 }
-
 @media (prefers-reduced-motion: reduce) {
+  .secret-archive.snap { transition: none; }
   .secret-photo { filter: none; transform: translate(-50%, -50%); }
 }
 </style>
@@ -91,15 +98,17 @@
 
   <script src="page-transition.js"></script>
 
-<!-- СЕКРЕТНЫЙ АРХИВ: скрыт выше стартовой позиции, открывается прокруткой/свайпом вверх -->
+<!-- СЕКРЕТНЫЙ АРХИВ: высота 0, раскрывается жестом «потяни вниз» на самом верху страницы -->
 <div class="secret-archive" id="secretArchive" aria-hidden="true">
-  <div class="secret-photo"></div>
-  <div class="secret-shade"></div>
-  <div class="secret-caption">
-    <b>Секретный архив</b>
-    <span>Ты нашёл пасхалку</span>
+  <div class="secret-inner">
+    <div class="secret-photo"></div>
+    <div class="secret-shade"></div>
+    <div class="secret-caption">
+      <b>опаа</b>
+      <span>зря я туда полеез...</span>
+    </div>
+    <div class="secret-handle">↓</div>
   </div>
-  <div class="secret-handle">↓</div>
 </div>
 
 <header class="site-header">
@@ -192,62 +201,104 @@
 
 <script>
 (function () {
-  const archive = document.getElementById('secretArchive');
-  if (!archive) return;
-  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+  const box = document.getElementById('secretArchive');
+  if (!box) return;
+  const root = document.documentElement;
+  const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+  const curY = () => window.pageYOffset || root.scrollTop || 0;
 
-  let H = archive.offsetHeight;
-  let touching = false, timer = null, lastY = H, dir = 0;
-  let userMoved = false; // пока человек сам не тронул страницу — держим её на «главной»
+  let H = 0, h = 0, lock = false, animUntil = 0, raf = 0, wheelTimer = 0, wheelDir = 0;
 
-  const curY = () => window.pageYOffset || document.documentElement.scrollTop || 0;
-  // instant — потому что в style.css у html стоит scroll-behavior: smooth
-  const goHome   = () => { H = archive.offsetHeight; window.scrollTo({ top: H, behavior: 'instant' }); };
-  const goOpen   = () => window.scrollTo({ top: 0, behavior: 'smooth' });
-  const goClosed = () => window.scrollTo({ top: H, behavior: 'smooth' });
+  function calcH() { H = Math.round(window.innerHeight * 0.85); root.style.setProperty('--H', H + 'px'); }
 
-  // Первое касание/колесо/клавиша = дальше управляет пользователь
-  ['touchstart', 'wheel', 'keydown', 'mousedown'].forEach(e =>
-    window.addEventListener(e, () => { userMoved = true; }, { passive: true, once: true }));
+  // --p (0..1) считаем по реальной видимой высоте, чтобы анимация шла и во время доводки
+  function loop() {
+    raf = 0;
+    const p = clamp((box.offsetHeight - curY()) / H, 0, 1);
+    box.style.setProperty('--p', p.toFixed(3));
+    if (performance.now() < animUntil) raf = requestAnimationFrame(loop);
+  }
+  function kick() { animUntil = performance.now() + 650; if (!raf) raf = requestAnimationFrame(loop); }
 
-  // Мобильные браузеры и интро любят сбрасывать прокрутку в 0 уже после нашего вызова,
-  // поэтому ставим позицию много раз: сразу, на следующем кадре, по таймерам и на событиях загрузки.
-  const hold = () => { if (!userMoved) goHome(); };
-  hold();
-  requestAnimationFrame(hold);
-  [50, 150, 300, 600, 1000, 1500, 2500, 4000, 6000].forEach(t => setTimeout(hold, t));
-  document.addEventListener('DOMContentLoaded', hold);
-  window.addEventListener('load', hold);
-  window.addEventListener('pageshow', hold);
-  window.addEventListener('resize', hold);
-  if (window.visualViewport) window.visualViewport.addEventListener('resize', hold);
-
-  // Страховка: если до первого касания что-то утащило страницу выше — возвращаем
-  function update() {
-    const y = curY();
-    if (!userMoved && y < H - 1) { goHome(); return; }
-
-    archive.style.setProperty('--p', Math.min(1, Math.max(0, 1 - y / H)).toFixed(3));
-    if (y !== lastY) dir = y < lastY ? -1 : 1; // -1 вверх, 1 вниз
-    lastY = y;
-    clearTimeout(timer);
-    timer = setTimeout(settle, 140);
+  function render(animated) {
+    box.classList.toggle('snap', !!animated);
+    box.style.setProperty('--h', h + 'px');
+    kick();
+  }
+  function drag(v, animated) { h = clamp(v, 0, H); render(animated); }
+  function snapTo(open) {
+    lock = true;
+    h = open ? H : 0;
+    render(true);
+    setTimeout(() => { lock = false; box.classList.remove('snap'); }, 500);
   }
 
-  // Доводчик: после остановки шторка либо открывается, либо закрывается
-  function settle() {
-    if (touching) return;
-    const y = curY();
-    if (y <= 0 || y >= H) return;
-    const p = 1 - y / H;
-    if (dir < 0) { p > 0.3 ? goOpen() : goClosed(); }
-    else         { p < 0.7 ? goClosed() : goOpen(); }
-  }
+  calcH();
+  box.style.setProperty('--h', '0px');
+  kick();
 
-  window.addEventListener('scroll', update, { passive: true });
-  window.addEventListener('touchstart', () => { touching = true; }, { passive: true });
-  window.addEventListener('touchend', () => { touching = false; timer = setTimeout(settle, 60); }, { passive: true });
-  update();
+  // ---------- палец: потянул вниз на самом верху ----------
+  let t = null;
+  window.addEventListener('touchstart', e => {
+    if (e.touches.length !== 1 || lock) { t = null; return; }
+    const y = e.touches[0].clientY;
+    t = { y0: y, last: y, base: h, dir: 0, active: false };
+  }, { passive: true });
+
+  window.addEventListener('touchmove', e => {
+    if (!t) return;
+    const cy = e.touches[0].clientY, dy = cy - t.y0;
+    if (cy !== t.last) t.dir = cy > t.last ? 1 : -1;
+    t.last = cy;
+    if (!t.active) {
+      if (curY() > 0) return;
+      const down = dy > 4 && h < H;
+      const up = dy < -4 && h > 0 && h < H;
+      if (!down && !up) return;
+      t.active = true; t.y0 = cy; t.base = h;
+    }
+    if (e.cancelable) e.preventDefault();       // не даём браузеру тянуть/обновлять страницу
+    drag(t.base + (cy - t.y0) * 0.9, false);
+  }, { passive: false });
+
+  function endTouch() {
+    if (t && t.active) snapTo(t.dir > 0 ? h > H * 0.3 : h > H * 0.7);
+    t = null;
+  }
+  window.addEventListener('touchend', endTouch, { passive: true });
+  window.addEventListener('touchcancel', endTouch, { passive: true });
+
+  // ---------- колесо/тачпад: крутим вверх на самом верху ----------
+  window.addEventListener('wheel', e => {
+    if (lock || e.ctrlKey || curY() > 0) return;
+    const d = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY;
+    if (!((d < 0 && h < H) || (d > 0 && h > 0 && h < H))) return;
+    e.preventDefault();
+    wheelDir = d < 0 ? 1 : -1;
+    drag(h - d, true);
+    clearTimeout(wheelTimer);
+    wheelTimer = setTimeout(() => snapTo(wheelDir > 0 ? h > H * 0.3 : h > H * 0.7), 300);
+  }, { passive: false });
+
+  // ---------- листаем вниз мимо архива: убираем его, страница остаётся «как сейчас» ----------
+  window.addEventListener('scroll', () => {
+    const y = curY();
+    if (h > 0 && y > h + 40 && !(t && t.active) && !lock) {
+      const off = h;
+      h = 0;
+      box.classList.remove('snap');
+      box.style.setProperty('--h', '0px');
+      void box.offsetHeight;
+      window.scrollBy({ top: -off, behavior: 'instant' }); // instant: у html стоит scroll-behavior: smooth
+    }
+    kick();
+  }, { passive: true });
+
+  window.addEventListener('resize', () => {
+    const wasOpen = h >= H - 2;
+    calcH();
+    if (wasOpen) { h = H; render(false); }
+  });
 })();
 </script>
 
