@@ -93,11 +93,11 @@
 
 <!-- СЕКРЕТНЫЙ АРХИВ: скрыт выше стартовой позиции, открывается прокруткой/свайпом вверх -->
 <div class="secret-archive" id="secretArchive" aria-hidden="true">
-  <div class="secret-photo"><img src="kote.png"></div>
+  <div class="secret-photo"></div>
   <div class="secret-shade"></div>
   <div class="secret-caption">
-    <b>опаа</b>
-    <span>зря я туда полеез...</span>
+    <b>Секретный архив</b>
+    <span>Ты нашёл пасхалку</span>
   </div>
   <div class="secret-handle">↓</div>
 </div>
@@ -198,38 +198,35 @@
 
   let H = archive.offsetHeight;
   let touching = false, timer = null, lastY = H, dir = 0;
+  let userMoved = false; // пока человек сам не тронул страницу — держим её на «главной»
 
+  const curY = () => window.pageYOffset || document.documentElement.scrollTop || 0;
   // instant — потому что в style.css у html стоит scroll-behavior: smooth
-  const goHome    = () => window.scrollTo({ top: H, behavior: 'instant' });
-  const goOpen    = () => window.scrollTo({ top: 0, behavior: 'smooth' });
-  const goClosed  = () => window.scrollTo({ top: H, behavior: 'smooth' });
+  const goHome   = () => { H = archive.offsetHeight; window.scrollTo({ top: H, behavior: 'instant' }); };
+  const goOpen   = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+  const goClosed = () => window.scrollTo({ top: H, behavior: 'smooth' });
 
-  // Держим стартовую позицию, пока идёт интро, и ставим её ещё раз, когда оно закончилось
-  function overlayGone() {
-    const o = document.getElementById('intro-overlay');
-    if (!o || !document.body.contains(o)) return true;
-    const cs = getComputedStyle(o);
-    return cs.display === 'none' || cs.visibility === 'hidden' || parseFloat(cs.opacity) === 0;
-  }
-  let iv = null, ticks = 0;
-  const stopHold = () => { if (iv) { clearInterval(iv); iv = null; } };
-  function holdHome() {
-    goHome();
-    iv = setInterval(() => {
-      goHome();
-      if (overlayGone() || ++ticks > 150) stopHold();
-    }, 100);
-  }
-  ['wheel', 'touchstart', 'keydown'].forEach(e =>
-    window.addEventListener(e, stopHold, { passive: true, once: true }));
+  // Первое касание/колесо/клавиша = дальше управляет пользователь
+  ['touchstart', 'wheel', 'keydown', 'mousedown'].forEach(e =>
+    window.addEventListener(e, () => { userMoved = true; }, { passive: true, once: true }));
 
-  goHome();
-  window.addEventListener('load', holdHome);
-  window.addEventListener('pageshow', e => { if (e.persisted) goHome(); });
-  window.addEventListener('resize', () => { H = archive.offsetHeight; });
+  // Мобильные браузеры и интро любят сбрасывать прокрутку в 0 уже после нашего вызова,
+  // поэтому ставим позицию много раз: сразу, на следующем кадре, по таймерам и на событиях загрузки.
+  const hold = () => { if (!userMoved) goHome(); };
+  hold();
+  requestAnimationFrame(hold);
+  [50, 150, 300, 600, 1000, 1500, 2500, 4000, 6000].forEach(t => setTimeout(hold, t));
+  document.addEventListener('DOMContentLoaded', hold);
+  window.addEventListener('load', hold);
+  window.addEventListener('pageshow', hold);
+  window.addEventListener('resize', hold);
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', hold);
 
+  // Страховка: если до первого касания что-то утащило страницу выше — возвращаем
   function update() {
-    const y = window.pageYOffset || document.documentElement.scrollTop;
+    const y = curY();
+    if (!userMoved && y < H - 1) { goHome(); return; }
+
     archive.style.setProperty('--p', Math.min(1, Math.max(0, 1 - y / H)).toFixed(3));
     if (y !== lastY) dir = y < lastY ? -1 : 1; // -1 вверх, 1 вниз
     lastY = y;
@@ -240,7 +237,7 @@
   // Доводчик: после остановки шторка либо открывается, либо закрывается
   function settle() {
     if (touching) return;
-    const y = window.pageYOffset || document.documentElement.scrollTop;
+    const y = curY();
     if (y <= 0 || y >= H) return;
     const p = 1 - y / H;
     if (dir < 0) { p > 0.3 ? goOpen() : goClosed(); }
