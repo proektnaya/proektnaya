@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Телеметрия — Проектная</title>
+<link rel="icon" href="favicon.png" />
+<link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="page-transition.css" />
+<link rel="stylesheet" href="fx.css" />
+
+<style>
+/* ---------- панель телеметрии ---------- */
+.stats-wrap { padding: 56px 0 96px; }
+
+.login-card {
+  max-width: 420px;
+  margin: 0 auto;
+  text-align: center;
+}
+.login-card .frame { padding: 34px 28px; }
+.login-card h2 { font-size: 22px; margin: 14px 0 6px; }
+.login-card p { color: var(--ink-dim); font-size: 14px; margin: 0 0 22px; }
+
+.stats-input {
+  width: 100%;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  letter-spacing: 0.12em;
+  color: var(--ink);
+  background: rgba(5, 11, 21, 0.8);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 13px 16px;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.stats-input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(62, 200, 255, 0.12); }
+.stats-input.err { border-color: var(--hazard); animation: shake 0.35s ease; }
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+.login-msg { min-height: 20px; margin-top: 10px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--hazard); }
+
+/* дашборд */
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 34px; }
+@media (max-width: 820px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+.stat-box { padding: 20px; }
+.stat-box b {
+  display: block;
+  font: 900 clamp(26px, 3.4vw, 38px) 'Unbounded', sans-serif;
+  color: var(--blue-bright);
+  text-shadow: 0 0 30px rgba(62, 200, 255, 0.35);
+}
+.stat-box span { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint); }
+
+.chart { display: flex; align-items: flex-end; gap: 8px; height: 180px; padding: 22px; overflow-x: auto; }
+.chart .bar { flex: 1 0 26px; display: flex; flex-direction: column; align-items: center; gap: 8px; height: 100%; justify-content: flex-end; }
+.chart .bar i {
+  display: block; width: 100%; min-height: 2px;
+  background: linear-gradient(180deg, var(--blue), rgba(62, 200, 255, 0.25));
+  border-radius: 2px 2px 0 0;
+  box-shadow: 0 0 14px rgba(62, 200, 255, 0.25);
+  transition: height 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.chart .bar.today i { background: linear-gradient(180deg, var(--hazard), rgba(255, 107, 53, 0.25)); box-shadow: 0 0 14px rgba(255, 107, 53, 0.3); }
+.chart .bar em { font: 10px 'JetBrains Mono', monospace; font-style: normal; color: var(--ink-faint); white-space: nowrap; }
+.chart .bar strong { font: 11px 'JetBrains Mono', monospace; color: var(--ink-dim); }
+
+table.visits {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12.5px;
+}
+table.visits th {
+  text-align: left;
+  color: var(--ink-faint);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 10.5px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+}
+table.visits td { padding: 10px 12px; border-bottom: 1px dashed var(--line); color: var(--ink-dim); }
+table.visits tr:hover td { color: var(--ink); background: rgba(62, 200, 255, 0.04); }
+table.visits td.ip { color: var(--blue-bright); }
+table.visits td.dev { color: var(--hazard); }
+
+.stats-note {
+  margin-top: 26px;
+  padding: 16px 20px;
+  border: 1px dashed var(--line);
+  color: var(--ink-faint);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px;
+  line-height: 1.7;
+}
+</style>
+</head>
+<body>
+  <script src="page-transition.js"></script>
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="index.html"><span class="crosshair"></span>ПРОЕКТНАЯ</a>
+    <button class="nav-toggle" aria-label="Меню"><span></span></button>
+    <nav class="primary-nav">
+      <a class="nav-link" href="index.html">Главная</a>
+      <a class="nav-link" href="perehod.html">Проекты</a>
+      <a class="nav-link" href="gallery.html">Галерея</a>
+      <a class="nav-link" href="novosti.html">Всякое</a>
+      <a class="nav-link" href="faq.html">Вопрос?</a>
+    </nav>
+  </div>
+</header>
+
+<section class="detail-head">
+  <div class="wrap">
+    <div class="eyebrow">Телеметрия &nbsp;·&nbsp; служебный доступ</div>
+    <h1>Кто заходил</h1>
+  </div>
+</section>
+
+<div class="stats-wrap">
+  <div class="wrap">
+
+    <!-- ЭКРАН ВХОДА -->
+    <div class="login-card" id="loginCard">
+      <div class="frame">
+        <div class="eyebrow" style="justify-content:center;">доступ по паролю</div>
+        <h2>Пиши пароль</h2>
+        <p>Статистика сайта</p>
+        <input class="stats-input" id="passInput" type="password" placeholder="••••••••" autocomplete="off" />
+        <div class="login-msg" id="loginMsg"></div>
+        <div class="btn-row" style="justify-content:center;">
+          <button class="btn btn-solid" id="loginBtn" type="button">Допуск</button>
+        </div>
+      </div>
+    </div>
+    <br>
+    <h1>Как всегда херово выглядишь)</h1>
+
+    <!-- ДАШБОРД -->
+    <div id="dash" hidden>
+      <div class="section-head">
+        <div class="eyebrow">сводка</div>
+        <h2>Обстановка</h2>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-box frame"><b id="stTotal">—</b><span>всего визитов</span></div>
+        <div class="stat-box frame"><b id="stToday">—</b><span>сегодня</span></div>
+        <div class="stat-box frame"><b id="stWeek">—</b><span>за 7 дней</span></div>
+        <div class="stat-box frame"><b id="stMonth">—</b><span>за месяц</span></div>
+      </div>
+
+      <div class="section-head" style="margin-top:44px;">
+        <div class="eyebrow">динамика</div>
+        <h2>Посещения по дням</h2>
+      </div>
+      <div class="frame"><div class="chart" id="chartDays"></div></div>
+
+      <div class="section-head" style="margin-top:44px;">
+        <div class="eyebrow">журнал</div>
+        <h2>Гости сегодня</h2>
+      </div>
+      <div class="frame" style="overflow-x:auto;">
+        <table class="visits">
+          <thead>
+            <tr><th>время</th><th>IP</th><th>откуда</th><th>устройство</th><th>браузер</th><th>страница</th></tr>
+          </thead>
+          <tbody id="todayBody"></tbody>
+        </table>
+      </div>
+
+      <div class="stats-note">
+        Данные берутся из логов твоего бэкенда (Google-таблица или Cloudflare Worker): IP, модель
+        устройства и браузер видны серверу при обычном запросе страницы. Имена и телефоны гостей
+        не собираются — взять их из браузера невозможно. Если не хочешь, чтобы гостям писались IP —
+        удали маячок telemetry() из fx.js.
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <p>© Проектная. Под моей защитой — плагиаторы идите нахер</p>
+    <div class="footer-links">
+      <a href="index.html">Главная</a>
+      <a href="faq.html">Вопрос?</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ↓ впиши URL своего воркера после деплоя (тот же, что в fx.js) */
+var WORKER_URL = '';
+/* ↓ проще: URL веб-приложения Google Apps Script (тот же, что в fx.js). Работает приоритетно. */
+var GAS_URL = 'https://script.google.com/macros/s/AKfycbziPtoA2-5mOmTui5G3XL5eP6Podk8cnWFeT_R5fC46zv5PkObBLNz5PTXJA5pi1ipA/exec';
+
+(function () {
+  var card = document.getElementById('loginCard');
+  var dash = document.getElementById('dash');
+  var input = document.getElementById('passInput');
+  var msg = document.getElementById('loginMsg');
+  var btn = document.getElementById('loginBtn');
+
+  function day(ts) { return new Date(ts).toISOString().slice(0, 10); }
+  function fmtTime(ts) {
+    var d = new Date(ts);
+    return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
+  }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+  function render(visits) {
+    var now = new Date();
+    var t0 = new Date(now); t0.setHours(0, 0, 0, 0);
+    var w0 = t0.getTime() - 6 * 864e5;
+    var m0 = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+
+    document.getElementById('stTotal').textContent = visits.length;
+    document.getElementById('stToday').textContent = visits.filter(function (v) { return v.ts >= t0.getTime(); }).length;
+    document.getElementById('stWeek').textContent = visits.filter(function (v) { return v.ts >= w0; }).length;
+    document.getElementById('stMonth').textContent = visits.filter(function (v) { return v.ts >= m0; }).length;
+
+    // график за 14 дней
+    var days = {};
+    visits.forEach(function (v) { var d = day(v.ts); days[d] = (days[d] || 0) + 1; });
+    var bars = [], max = 1;
+    for (var i = 13; i >= 0; i--) {
+      var d = new Date(t0.getTime() - i * 864e5).toISOString().slice(0, 10);
+      var n = days[d] || 0;
+      if (n > max) max = n;
+      bars.push({ d: d, n: n, today: i === 0 });
+    }
+    var chart = document.getElementById('chartDays');
+    chart.innerHTML = bars.map(function (b) {
+      var h = Math.max(2, Math.round(b.n / max * 120));
+      return '<div class="bar' + (b.today ? ' today' : '') + '"><strong>' + b.n + '</strong>' +
+             '<i style="height:' + h + 'px"></i><em>' + b.d.slice(5) + '</em></div>';
+    }).join('');
+
+    // таблица сегодняшних
+    var today = visits.filter(function (v) { return v.ts >= t0.getTime(); });
+    document.getElementById('todayBody').innerHTML = today.length
+      ? today.map(function (v) {
+          return '<tr><td>' + fmtTime(v.ts) + '</td><td class="ip">' + esc(v.ip) + '</td>' +
+                 '<td>' + esc(v.country || '—') + (v.city ? ' · ' + esc(v.city) : '') + '</td>' +
+                 '<td class="dev">' + esc(v.device) + '</td><td>' + esc(v.browser) + '</td>' +
+                 '<td>' + esc(v.path) + '</td></tr>';
+        }).join('')
+      : '<tr><td colspan="6">сегодня никого небыло, только ты - чмошник</td></tr>';
+  }
+
+  function ok(data) {
+    if (data && data.error) {
+      msg.textContent = data.error;
+      input.classList.add('err');
+      setTimeout(function () { input.classList.remove('err'); }, 400);
+      btn.disabled = false;
+      return;
+    }
+    card.hidden = true;
+    dash.hidden = false;
+    render(data.visits || []);
+    try { sessionStorage.setItem('pj_stats_pass', input.value.trim()); } catch (e) {}
+    btn.disabled = false;
+  }
+  function fail(e) {
+    msg.textContent = (e && e.message) || 'ошибка связи';
+    input.classList.add('err');
+    setTimeout(function () { input.classList.remove('err'); }, 400);
+    btn.disabled = false;
+  }
+
+  function login() {
+    var pass = input.value.trim();
+    if (!pass) return;
+    btn.disabled = true;
+    msg.textContent = 'связь…';
+
+    var url = (String(GAS_URL || '')).trim();
+    var looksGas = /^https:\/\/script\.google\.com\//.test(url);
+    var looksLocal = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?(\/|$)/.test(url); // для локальной проверки
+    if (url && !looksGas && !looksLocal) {
+      fail(new Error('GAS_URL должен начинаться с https://script.google.com/'));
+      return;
+    }
+
+    if (url) {
+      var qs = 'task=stats&pass=' + encodeURIComponent(pass);
+
+      var byJsonp = function () {
+        window.pjStats = function (data) {
+          delete window.pjStats;
+          if (data && data.error) { fail(new Error(data.error)); return; }
+          ok(data || { visits: [] });
+        };
+        var s = document.createElement('script');
+        s.src = url + '?' + qs + '&callback=pjStats';
+        var dead = setTimeout(function () {
+          if (!window.pjStats) return;
+          delete window.pjStats;
+          s.remove();
+          fail(new Error('доступ к скрипту закрыт: открой в приватном окне ' + url + '?task=stats&pass=adminer — если просит вход в Google, ставь доступ «Все»'));
+        }, 15000);
+        s.onload = function () { clearTimeout(dead); if (window.pjStats) { delete window.pjStats; clearTimeout(dead); fail(new Error('скрипт вернул не JSON — вставлен код из apps-script.gs?')); } };
+        s.onerror = function () { clearTimeout(dead); delete window.pjStats; fail(new Error('нет связи со скриптом — проверь интернет')); };
+        document.body.appendChild(s);
+      };
+
+      // сначала обычный запрос (быстрее и точнее по ошибкам), при провале — JSONP
+      var xhr = new XMLHttpRequest();
+      xhr.timeout = 12000;
+      xhr.open('GET', url + '?' + qs);
+      xhr.onload = function () {
+        var t = xhr.responseText || '';
+        if (xhr.status === 403 || /Sign in|Войдите|accounts\/google/i.test(t)) { fail(new Error('скрипт требует вход в Google: Развернуть → Управление развертываниями → доступ «Все», версия New')); return; }
+        if (xhr.status !== 200) { fail(new Error('Google ответил ' + xhr.status + ' — проверь, что URL кончается на /exec')); return; }
+        try { var data = JSON.parse(t); if (data.error) { fail(new Error(data.error)); return; } ok(data); }
+        catch (e) { fail(new Error('скрипт вернул не JSON — нужен код из apps-script.gs (task=stats, лист visits)')); }
+      };
+      xhr.onerror = byJsonp;
+      xhr.ontimeout = byJsonp;
+      xhr.send();
+      return;
+    }
+
+    if (!WORKER_URL) {
+      btn.disabled = false;
+      msg.textContent = 'GAS_URL / WORKER_URL не заполнены — настрой бэкенд (см. README-stats.md)';
+      return;
+    }
+    fetch(WORKER_URL + '/stats', { headers: { 'x-stats-key': pass } })
+      .then(function (r) {
+        if (r.status === 401) throw new Error('А ну пошёл нахер');
+        return r.json();
+      })
+      .then(ok)
+      .catch(fail);
+  }
+
+  btn.addEventListener('click', login);
+  input.addEventListener('keydown', function (e) { if (e.key === 'Enter') login(); });
+
+  // авто-вход, если пароль уже вводили в этой сессии
+  var saved = '';
+  try { saved = sessionStorage.getItem('pj_stats_pass') || ''; } catch (e) {}
+  if (saved && (GAS_URL || WORKER_URL)) { input.value = saved; login(); }
+})();
+</script>
+
+<script src="fx.js" defer></script>
+<script src="app.js"></script>
+</body>
+</html>
