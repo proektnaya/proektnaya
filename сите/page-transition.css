@@ -1,0 +1,60 @@
+/* ===== Переход между страницами: наезд/отъезд камеры на прицел в лого ===== */
+#page-content {
+  transform-origin: var(--pt-x, 0px) var(--pt-y, 0px);
+  transform: scale(6);
+  opacity: 0;
+}
+
+/* открытие страницы: быстрый вылет камеры наружу, плавное затухание в конце */
+body.pt-in #page-content {
+  transition:
+    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.35s ease 0.3s;
+}
+
+/* уход со страницы: разгон камеры внутрь точки */
+body.pt-out #page-content {
+  transition:
+    transform 0.55s cubic-bezier(0.7, 0, 0.84, 0),
+    opacity 0.3s ease;
+}
+
+body.pt-open #page-content {
+  transform: scale(1);
+  opacity: 1;
+}
+
+/* декоративный прицел-фокус поверх наезда/отъезда */
+#page-transition {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  pointer-events: none;
+}
+.pt-reticle {
+  position: absolute;
+  top: var(--pt-y, 50%);
+  left: var(--pt-x, 50%);
+  width: 14px;
+  height: 14px;
+  transform: translate(-50%, -50%) scale(2.2);
+  opacity: 1;
+}
+body.pt-in .pt-reticle {
+  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+}
+body.pt-out .pt-reticle {
+  transition: transform 0.4s cubic-bezier(0.7, 0, 0.84, 0), opacity 0.2s ease;
+}
+body.pt-open .pt-reticle {
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 0;
+}
+.pt-reticle::before,
+.pt-reticle::after {
+  content: '';
+  position: absolute;
+  background: var(--hazard);
+}
+.pt-reticle::before { width: 100%; height: 1px; top: 50%; left: 0; }
+.pt-reticle::after { height: 100%; width: 1px; left: 50%; top: 0; }

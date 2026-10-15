@@ -1,0 +1,137 @@
+/* =========================================================
+   FX-слой ПРОЕКТНОЙ: курсор-прицел, зерно, прогресс, reveal
+   Подключается на всех страницах, работает с любой темой.
+   ========================================================= */
+
+/* --- кинотеатральное зерно поверх всего --- */
+.fx-grain {
+  position: fixed;
+  inset: -12%;
+  z-index: 10001;
+  pointer-events: none;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 220 220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: fxGrain 6s steps(8) infinite;
+}
+@keyframes fxGrain {
+  0%    { transform: translate(0, 0); }
+  12.5% { transform: translate(-3%, 4%); }
+  25%   { transform: translate(2%, -3%); }
+  37.5% { transform: translate(-4%, -2%); }
+  50%   { transform: translate(3%, 3%); }
+  62.5% { transform: translate(-2%, 2%); }
+  75%   { transform: translate(4%, -4%); }
+  87.5% { transform: translate(-3%, -3%); }
+  100%  { transform: translate(0, 0); }
+}
+
+/* --- прогресс чтения --- */
+.fx-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  z-index: 10004;
+  pointer-events: none;
+  transform-origin: 0 50%;
+  transform: scaleX(0);
+  background: linear-gradient(90deg, #3ec8ff, #7df0ff 45%, #ff6b35);
+  box-shadow: 0 0 12px rgba(62, 200, 255, 0.6);
+}
+
+/* --- мягкое световое пятно за курсором (двигается через transform — без репейнта) --- */
+.fx-cursor-glow {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 700px;
+  height: 700px;
+  margin: -350px 0 0 -350px;
+  z-index: 2;
+  pointer-events: none;
+  will-change: transform;
+  background: radial-gradient(circle, rgba(62, 200, 255, 0.06), transparent 62%);
+}
+
+/* --- прицел-курсор: точка + кольцо с рисками --- */
+.fx-cdot {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  border-radius: 50%;
+  background: #ff6b35;
+  box-shadow: 0 0 10px rgba(255, 107, 53, 0.9);
+  z-index: 10005;
+  pointer-events: none;
+  will-change: transform;
+}
+.fx-cring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 30px;
+  height: 30px;
+  margin: -15px 0 0 -15px;
+  border: 1px solid rgba(62, 200, 255, 0.65);
+  border-radius: 50%;
+  z-index: 10005;
+  pointer-events: none;
+  will-change: transform;
+  opacity: 0.9;
+  transition: border-color 0.25s ease;
+}
+.fx-cring::before,
+.fx-cring::after {
+  content: '';
+  position: absolute;
+  background: rgba(62, 200, 255, 0.4);
+  transition: background 0.25s ease;
+  pointer-events: none;
+}
+.fx-cring::before { width: 100%; height: 1px; top: 50%; left: 0; }
+.fx-cring::after { height: 100%; width: 1px; left: 50%; top: 0; }
+.fx-cring.fx-cursor-link { border-color: rgba(255, 107, 53, 0.9); }
+.fx-cring.fx-cursor-link::before,
+.fx-cring.fx-cursor-link::after { background: rgba(255, 107, 53, 0.6); }
+
+/* --- scroll-reveal --- */
+.fx-init {
+  opacity: 0;
+  transform: translateY(34px);
+  transition: opacity 0.9s ease, transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: var(--fx-d, 0ms);
+}
+.fx-init.fx-show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* --- пословный подъём заголовков --- */
+.fx-word {
+  display: inline-block;
+  white-space: pre;
+  opacity: 0;
+  transform: translateY(0.85em);
+  filter: blur(5px);
+  transition: opacity 0.55s ease, transform 0.85s cubic-bezier(0.16, 1, 0.3, 1), filter 0.55s ease;
+  transition-delay: calc(var(--fx-w, 0) * 65ms);
+}
+.fx-init.fx-show .fx-word {
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+
+/* ---------- reduced motion / touch ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .fx-init { opacity: 1 !important; transform: none !important; }
+  .fx-word { opacity: 1 !important; transform: none !important; filter: none !important; }
+  .fx-grain, .fx-cdot, .fx-cring, .fx-cursor-glow { display: none !important; }
+}
+@media (hover: none) {
+  .fx-cdot, .fx-cring, .fx-cursor-glow { display: none !important; }
+}
