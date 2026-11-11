@@ -8,6 +8,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Главная — Проектная</title>
 <link rel="icon" href="favicon.png" />
+<link rel="stylesheet" href="fonts.css" />
 <link rel="stylesheet" href="style.css" />
 <link rel="stylesheet" href="page-transition.css" />
 <link rel="stylesheet" href="intro-fx.css" />
@@ -50,8 +51,9 @@ html { overscroll-behavior-y: contain; overflow-anchor: none; }
   width: min(64vmin, 420px);
   aspect-ratio: 1 / 1;
   background: var(--bg-elevated) url('kote.png') center / cover no-repeat;
-  border: 1px solid var(--line);
+  border: 2px solid var(--ink);
   border-radius: var(--radius);
+  box-shadow: 6px 6px 0 rgba(16, 18, 22, 0.55);
   transform: translate(-50%, -50%) scale(calc(0.8 + 0.2 * var(--p)));
   filter: blur(calc((1 - var(--p)) * 10px)) brightness(calc(0.35 + 0.65 * var(--p)));
   will-change: transform, filter;
@@ -59,7 +61,7 @@ html { overscroll-behavior-y: contain; overflow-anchor: none; }
 .secret-shade {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(11,23,41,.92) 0%, rgba(11,23,41,0) 50%);
+  background: linear-gradient(to top, rgba(16,18,22,.94) 0%, rgba(16,18,22,0) 55%);
   opacity: var(--p);
 }
 .secret-caption {
@@ -67,12 +69,12 @@ html { overscroll-behavior-y: contain; overflow-anchor: none; }
   left: 0; right: 0;
   bottom: 72px;
   text-align: center;
-  color: var(--ink);
+  color: #f4f0e5;
   opacity: calc((var(--p) - 0.35) * 1.6);
   transform: translateY(calc((1 - var(--p)) * 30px));
 }
-.secret-caption b { display: block; font-size: 1.6rem; }
-.secret-caption span { color: var(--ink-dim); font-size: .95rem; }
+.secret-caption b { display: block; font-size: 1.6rem; text-shadow: 3px 0 0 rgba(255,31,90,.8), -2px 0 0 rgba(27,52,232,.7); }
+.secret-caption span { color: rgba(244,240,229,.7); font-size: .95rem; }
 .secret-handle {
   position: absolute;
   left: 50%;
@@ -80,11 +82,12 @@ html { overscroll-behavior-y: contain; overflow-anchor: none; }
   width: 40px; height: 40px;
   margin-left: -20px;
   border-radius: 50%;
-  border: 1px solid var(--blue);
-  background: rgba(11,23,41,.7);
-  color: var(--blue-bright);
+  border: 2px solid #101216;
+  background: var(--acid);
+  color: #101216;
   display: flex; align-items: center; justify-content: center;
   font-size: 20px;
+  box-shadow: 3px 3px 0 rgba(16,18,22,.7);
   transform: rotate(calc(var(--p) * 180deg));
 }
 @media (prefers-reduced-motion: reduce) {
@@ -129,9 +132,7 @@ html { overscroll-behavior-y: contain; overflow-anchor: none; }
 
 <section class="hero">
   <div class="hero-media">
-    <video autoplay muted loop playsinline poster="миньоны.gif">
-      <source src="миньоны.gif" type="video/mp4" />
-    </video>
+    <img src="assets/images/minions.webp" alt="" width="700" height="393" decoding="async" fetchpriority="high" />
   </div>
   <div class="hero-content wrap">
     <div class="eyebrow">Главная &nbsp;·&nbsp; тут</div>
@@ -166,7 +167,7 @@ html { overscroll-behavior-y: contain; overflow-anchor: none; }
       <h2>Видео с полётом</h2>
     </div>
     <div class="video-frame">
-      <iframe src="https://vkvideo.ru/video_ext.php?oid=743658981&id=456239034&hash=b91aca3d878cdcd7&hd=3&autoplay=0" allow="autoplay; encrypted-media; fullscreen" allowfullscreen></iframe>
+      <iframe loading="lazy" src="https://vkvideo.ru/video_ext.php?oid=743658981&id=456239034&hash=b91aca3d878cdcd7&hd=3&autoplay=0" allow="autoplay; encrypted-media; fullscreen" allowfullscreen></iframe>
     </div>
   </div>
 </section>
@@ -175,20 +176,12 @@ html { overscroll-behavior-y: contain; overflow-anchor: none; }
   <div class="wrap">
     <a href="ami.jpg"><p>© Проектная. Под моей защитой — плагиаторы идите нахер </p></a>
     <div class="footer-links">
-      <a href="http://192.168.4.1/">Экран</a>
-      <a href="portfolio.html"><h7>Наши люди</h7></a>
+      <!--<a href="portfolio.html"><h7>Наши люди</h7></a>-->
       <a href="https://t.me/zmeygorinichochko" target="_blank" rel="noopener">Telegram</a>
       <a href="perehod.html">Проекты</a>
       <a href="faq.html">Вопрос?</a>
     </div>
-    <p style="font-size: 1px;"> Чтобы зайти в "Экран" сначало подключись к сети "ыыы экран", пароль: ялох1234</p>
   </div>
-  
-
-
-  <br>
-  <br>
-  <br>
 
 <!--    <h1>Ах да</h1>
     <h1>вот карта сайта</h1>
@@ -212,7 +205,9 @@ html { overscroll-behavior-y: contain; overflow-anchor: none; }
   const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
   const curY = () => window.pageYOffset || root.scrollTop || 0;
 
-  let H = 0, h = 0, lock = false, animUntil = 0, raf = 0, wheelTimer = 0, wheelDir = 0;
+  let H = 0, h = 0, lock = false, animUntil = 0, raf = 0, wheelTimer = 0, wheelDir = 0, wheelLast = 0;
+  const STEP = 105;   // пикселей за один шаг архива
+  const RATE = 115;   // мс между шагами: скорость всегда одна и та же
 
   function calcH() { H = Math.round(window.innerHeight * 0.85); root.style.setProperty('--H', H + 'px'); }
 
@@ -277,12 +272,19 @@ html { overscroll-behavior-y: contain; overflow-anchor: none; }
   window.addEventListener('wheel', e => {
     if (lock || e.ctrlKey || curY() > 0) return;
     const d = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY;
+    if (d === 0) return;
     if (!((d < 0 && h < H) || (d > 0 && h > 0 && h < H))) return;
     e.preventDefault();
     wheelDir = d < 0 ? 1 : -1;
-    drag(h - d, true);
+    // шаг не чаще RATE мс и всегда на STEP px: скорость фиксированная,
+    // сколько бы сильно ни крутили колесо (тачпад сыплет событиями пачками)
+    const now = performance.now();
+    if (now - wheelLast >= RATE) {
+      wheelLast = now;
+      drag(h + wheelDir * STEP, true);
+    }
     clearTimeout(wheelTimer);
-    wheelTimer = setTimeout(() => snapTo(wheelDir > 0 ? h > H * 0.3 : h > H * 0.7), 300);
+    wheelTimer = setTimeout(() => { wheelLast = 0; snapTo(wheelDir > 0 ? h > H * 0.15 : h > H * 0.7); }, 300);
   }, { passive: false });
 
   // ---------- листаем вниз мимо архива: убираем его, страница остаётся «как сейчас» ----------

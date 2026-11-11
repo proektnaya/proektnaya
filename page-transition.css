@@ -1,22 +1,30 @@
-/* ===== Переход между страницами: наезд/отъезд камеры на прицел в лого ===== */
+/* =========================================================
+   Переход между страницами: наезд/отъезд камеры на лого-искру
+   + «затвор» из диагональных полос. Контракт (#page-content, body.pt-*,
+   --pt-x/--pt-y, .site-header .crosshair) не менялся.
+   ========================================================= */
 #page-content {
   transform-origin: var(--pt-x, 0px) var(--pt-y, 0px);
   transform: scale(6);
   opacity: 0;
+  /* подвал всегда прижимается к низу: на коротких страницах он не повисает в середине */
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 /* открытие страницы: быстрый вылет камеры наружу, плавное затухание в конце */
 body.pt-in #page-content {
   transition:
-    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1),
-    opacity 0.35s ease 0.3s;
+    transform 0.32s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.16s ease;
 }
 
 /* уход со страницы: разгон камеры внутрь точки */
 body.pt-out #page-content {
   transition:
-    transform 0.55s cubic-bezier(0.7, 0, 0.84, 0),
-    opacity 0.3s ease;
+    transform 0.16s cubic-bezier(0.7, 0, 0.84, 0),
+    opacity 0.12s ease;
 }
 
 body.pt-open #page-content {
@@ -24,37 +32,90 @@ body.pt-open #page-content {
   opacity: 1;
 }
 
-/* декоративный прицел-фокус поверх наезда/отъезда */
+/* после заезда убираем трансформацию совсем: scale(1) всё равно создаёт
+   контейнер, из-за которого высота прокрутки считается неверно */
+body.pt-done #page-content { transform: none; }
+
+/* декоративная искра-фокус поверх наезда/отъезда */
 #page-transition {
   position: fixed;
   inset: 0;
   z-index: 9998;
   pointer-events: none;
+  overflow: hidden;
 }
 .pt-reticle {
   position: absolute;
   top: var(--pt-y, 50%);
   left: var(--pt-x, 50%);
-  width: 14px;
-  height: 14px;
-  transform: translate(-50%, -50%) scale(2.2);
+  width: 30px;
+  height: 30px;
+  background: url('logo.png') center / contain no-repeat;
+  animation: ptSpin 1.4s linear infinite;
+  transform: translate(-50%, -50%) scale(2.6);
   opacity: 1;
 }
+@keyframes ptSpin { to { rotate: 360deg; } }
 body.pt-in .pt-reticle {
-  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+  transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.16s ease;
 }
 body.pt-out .pt-reticle {
-  transition: transform 0.4s cubic-bezier(0.7, 0, 0.84, 0), opacity 0.2s ease;
+  transition: transform 0.16s cubic-bezier(0.7, 0, 0.84, 0), opacity 0.12s ease;
 }
 body.pt-open .pt-reticle {
   transform: translate(-50%, -50%) scale(1);
   opacity: 0;
 }
-.pt-reticle::before,
-.pt-reticle::after {
+
+/* --- «затвор»: полосатая печать наезжает при уходе и открывается при входе --- */
+#page-transition::before {
   content: '';
   position: absolute;
-  background: var(--hazard);
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 100%;
+  transform: scaleY(0);
+  transform-origin: 50% 0;
+  background: repeating-linear-gradient(135deg, #101216 0 14px, #1b34e8 14px 17px, #101216 17px 30px);
+  transition: transform 0.14s cubic-bezier(0.77, 0, 0.18, 1);
 }
-.pt-reticle::before { width: 100%; height: 1px; top: 50%; left: 0; }
-.pt-reticle::after { height: 100%; width: 1px; left: 50%; top: 0; }
+body.pt-out #page-transition::before {
+  transform: scaleY(1);
+  transform-origin: 50% 0;
+}
+body.pt-in #page-transition::before {
+  transform: scaleY(1);
+  transform-origin: 50% 100%;
+  transition: none;
+}
+body.pt-in.pt-open #page-transition::before {
+  transform: scaleY(0);
+  transform-origin: 50% 100%;
+  transition: transform 0.28s cubic-bezier(0.77, 0, 0.18, 1);
+}
+
+/* кислотная линия по нижней кромке затвора */
+#page-transition::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 3px;
+  background: #d7f23c;
+  box-shadow: 0 0 18px rgba(215, 242, 60, 0.6);
+  transform: translateY(-6px);
+  opacity: 0;
+  transition: transform 0.35s ease, opacity 0.25s ease;
+}
+body.pt-out #page-transition::after {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #page-content { transform: none !important; opacity: 1 !important; }
+  #page-transition { display: none !important; }
+  .pt-reticle { animation: none !important; }
+}

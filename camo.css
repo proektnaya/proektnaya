@@ -1,0 +1,357 @@
+/* =========================================================
+   ПРОЕКТНАЯ · КАМУФЛЯЖ — тема только для a.html
+   Поле: процедурные пятна (feTurbulence + постеризация в 5 тонов),
+   поверх — «полевое дело»: крафтовая бумага, трафарет, янтарь.
+   Подключается ПОСЛЕ portfolio.css / fx.css / page-transition.css.
+   ========================================================= */
+
+:root {
+  /* пятна камуфляжа: бесшовный тайл, 5 дискретных тонов */
+  --camo: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600' viewBox='0 0 600 600'%3E%3Cfilter id='c' x='0' y='0' width='100%25' height='100%25' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.009' numOctaves='3' seed='11' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0.33 0.33 0.33 0 0 0.33 0.33 0.33 0 0 0.33 0.33 0.33 0 0 0 0 0 0 1'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='discrete' tableValues='0.10 0.29 0.37 0.55 0.74'/%3E%3CfeFuncG type='discrete' tableValues='0.13 0.23 0.43 0.58 0.72'/%3E%3CfeFuncB type='discrete' tableValues='0.07 0.13 0.20 0.33 0.54'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='600' height='600' filter='url(%23c)'/%3E%3C/svg%3E");
+
+  --field: #2b3419;        /* земля под камуфляжем */
+  --night: #141a0e;        /* почти чёрный зелёный — плашки */
+  --bark: #4a3b21;         /* кора */
+  --olive: #5e6e33;        /* основной оливковый */
+  --moss: #8c9454;         /* мох */
+  --sand: #bdb88a;         /* сухая трава */
+
+  --paper: #dcd7b2;        /* крафт полевого дела */
+  --paper-hi: #ebe6c6;
+  --paper-lo: #c3bd93;
+
+  --amber: #ffb020;        /* сигнальный янтарь */
+  --rust: #a83a10;         /* ржавчина — мелкий акцентный текст */
+  --signal: #d94f16;       /* оранжевый — заливки и сдвиг красок */
+  --grass: #cfe04a;        /* травяной хайлайтер */
+
+  /* перекраска системы portfolio.css */
+  --bg: var(--field);
+  --bg-elevated: var(--paper);
+  --elev: var(--paper);
+  --elev2: var(--paper-lo);
+  --grid: rgba(20, 26, 12, 0.07);
+  --line: rgba(23, 28, 15, 0.34);
+  --ink: #171c0f;
+  --dim: #3b4327;
+  --ink-dim: #3b4327;
+  --faint: #55603c;
+  --blue: #46652a;
+  --bright: var(--signal);
+  --blue-bright: var(--signal);
+  --acid: var(--grass);
+  --hazard: var(--amber);
+  --glass: rgba(18, 23, 12, 0.96);
+  --ink-block: var(--night);
+  --paper-ink: #ece7c8;
+  --edge: 2px solid var(--ink);
+  --shadow-hard: 6px 6px 0 var(--night);
+  --shadow-hard-sm: 3px 3px 0 var(--night);
+}
+
+/* ---------- поле: пятна + медленный дрейф + затемнение по краям ---------- */
+body {
+  background-color: var(--field);
+  background-image: none;
+  color: var(--ink);
+}
+body::before {
+  content: '';
+  position: fixed;
+  inset: -18%;
+  z-index: -2;
+  pointer-events: none;
+  background-image: var(--camo);
+  background-size: 620px 620px;
+  opacity: 0.92;
+  animation: camoDrift 120s linear infinite alternate;
+  will-change: transform;
+}
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 80% at 50% 0%, rgba(20, 26, 14, 0) 35%, rgba(15, 20, 9, 0.55) 100%),
+    linear-gradient(180deg, rgba(15, 20, 9, 0.34), rgba(15, 20, 9, 0.1) 30%, rgba(15, 20, 9, 0.42));
+}
+@keyframes camoDrift {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(-3%, 2.5%, 0) scale(1.06); }
+}
+
+::selection { background: var(--amber); color: var(--night); }
+
+/* ---------- скроллбар в палитре темы ---------- */
+html { scrollbar-color: var(--olive) var(--night); scrollbar-width: thin; }
+::-webkit-scrollbar { width: 12px; height: 12px; }
+::-webkit-scrollbar-track { background: var(--night); border-left: 2px solid #0c1007; }
+::-webkit-scrollbar-thumb {
+  background: var(--camo) 0 0 / 120px 120px, var(--olive);
+  border: 2px solid var(--night);
+}
+::-webkit-scrollbar-thumb:hover { background-color: var(--amber); }
+::-webkit-scrollbar-corner { background: var(--night); }
+
+/* ---------- шапка: ночная плашка с янтарной кромкой ---------- */
+.site-header {
+  background:
+    linear-gradient(rgba(18, 23, 12, 0.93), rgba(18, 23, 12, 0.97)),
+    var(--camo) 0 0 / 300px 300px;
+  border-bottom: 3px solid var(--amber);
+  backdrop-filter: blur(3px);
+}
+.site-header::after {
+  background: linear-gradient(90deg, transparent, var(--grass) 45%, var(--amber));
+  height: 3px;
+}
+html.is-scrolled .site-header {
+  border-bottom-color: var(--grass);
+  box-shadow: 0 10px 0 rgba(12, 16, 7, 0.3);
+}
+.brand { color: var(--paper-ink); }
+.brand:hover { color: var(--amber); }
+.crosshair { filter: hue-rotate(-95deg) saturate(1.25); }
+.brand:hover .crosshair { filter: hue-rotate(-95deg) saturate(1.25) drop-shadow(0 0 7px rgba(255, 176, 32, 0.6)); }
+
+/* ---------- кнопки навигации: трафаретные плашки ---------- */
+.nav-link {
+  color: rgba(236, 231, 200, 0.74);
+  border: 1px solid transparent;
+  transition: color 0.22s ease, border-color 0.22s ease;
+}
+.nav-link::after {
+  inset: 0;
+  background:
+    linear-gradient(rgba(207, 224, 74, 0.9), rgba(207, 224, 74, 0.9)),
+    var(--camo) 0 0 / 90px 90px;
+}
+.nav-link:hover { color: var(--night); border-color: var(--night); }
+.nav-link.is-current { color: var(--night); border-color: var(--night); }
+.nav-link.is-current::after {
+  background:
+    linear-gradient(rgba(255, 176, 32, 0.94), rgba(255, 176, 32, 0.94)),
+    var(--camo) 0 0 / 90px 90px;
+}
+.nav-link:focus-visible,
+.brand:focus-visible,
+.site-footer a:focus-visible {
+  outline: 3px solid var(--amber);
+  outline-offset: 2px;
+}
+.sound-toggle { background: none; cursor: pointer; }
+.sound-toggle[aria-pressed="false"] { color: rgba(236, 231, 200, 0.45); text-decoration: line-through; }
+.sound-toggle[aria-pressed="false"]:hover { color: var(--night); text-decoration: none; }
+
+/* ---------- герой: лист полевого дела поверх пятен ---------- */
+.profile-hero {
+  position: relative;
+  border-bottom: 4px solid var(--night);
+  background:
+    linear-gradient(180deg, rgba(220, 215, 178, 0.94), rgba(195, 189, 147, 0.9)),
+    var(--camo) 0 0 / 420px 420px;
+}
+.profile-hero::before {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; top: 0;
+  height: 8px;
+  background: repeating-linear-gradient(135deg,
+    var(--night) 0 12px, var(--amber) 12px 24px);
+  opacity: 0.85;
+  pointer-events: none;
+}
+.profile-grid { position: relative; z-index: 1; }
+
+/* фото в камуфляжном паспарту */
+.profile-photo {
+  background: transparent;
+  border: 2px solid var(--night);
+  box-shadow: 8px 8px 0 rgba(12, 16, 7, 0.55);
+}
+.profile-photo:hover { box-shadow: 12px 12px 0 var(--amber); }
+.profile-photo::before, .profile-photo::after { border-color: var(--amber); }
+.photo-code {
+  height: 12px;
+  padding: 0;
+  margin-bottom: 10px;
+  background: repeating-linear-gradient(135deg,
+    var(--night) 0 9px, var(--amber) 9px 18px);
+  opacity: 0.9;
+}
+.profile-photo img { border: 2px solid var(--night); }
+.profile-photo:hover img { animation: imgTwitch 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) 1; }
+@keyframes imgTwitch {
+  0%, 100% { transform: scale(1.02) translate(0, 0) rotate(0); }
+  15% { transform: scale(1.02) translate(-4px, 2px) rotate(-1deg); }
+  30% { transform: scale(1.02) translate(4px, -3px) rotate(0.9deg); }
+  45% { transform: scale(1.02) translate(-3px, -2px) rotate(-0.7deg); }
+  60% { transform: scale(1.02) translate(3px, 2px) rotate(0.5deg); }
+  80% { transform: scale(1.02) translate(-1px, 1px) rotate(-0.2deg); }
+}
+
+/* плашка роли */
+.eyebrow {
+  background:
+    linear-gradient(rgba(255, 176, 32, 0.95), rgba(255, 176, 32, 0.95)),
+    var(--camo) 0 0 / 110px 110px;
+  color: var(--night);
+  border: 2px solid var(--night);
+  box-shadow: 3px 3px 0 var(--night);
+}
+.eyebrow::before { background: var(--olive); border-color: var(--night); box-shadow: 2px 2px 0 var(--night); }
+.eyebrow:hover { box-shadow: 6px 6px 0 var(--night); }
+
+.profile-copy h1 {
+  color: var(--night);
+  text-shadow: 4px 0 rgba(70, 101, 42, 0.55), -4px 0 rgba(217, 79, 22, 0.4);
+}
+.profile-copy > p { color: var(--dim); }
+
+/* цифры устава */
+.stats { border-top: 3px dashed rgba(23, 28, 15, 0.4); }
+.stats > div {
+  padding: 10px 16px 10px 0;
+  border-right: 2px solid rgba(23, 28, 15, 0.18);
+}
+.stats > div:last-child { border-right: 0; }
+.stats b { color: #33501d; }
+.stats span { color: var(--faint); }
+
+/* ---------- достижения: карточки-нашивки ---------- */
+.achievements {
+  border-bottom: 4px dashed rgba(236, 231, 200, 0.35);
+  background:
+    linear-gradient(180deg, rgba(43, 52, 25, 0.72), rgba(20, 26, 14, 0.82)),
+    var(--camo) 0 0 / 520px 520px;
+}
+.achievements .section-head h2 { color: var(--paper-hi); }
+.achievements .section-head h2::after { background: var(--amber); }
+.achievements .section-head p { color: rgba(236, 231, 200, 0.78); }
+.achievements .eyebrow { color: var(--night); }
+
+.achievement {
+  background:
+    linear-gradient(rgba(220, 215, 178, 0.96), rgba(220, 215, 178, 0.96)),
+    var(--camo) 0 0 / 260px 260px;
+  border: 2px solid var(--night);
+  box-shadow: 4px 4px 0 rgba(12, 16, 7, 0.6);
+}
+.achievement::before, .achievement::after { border-color: var(--olive); }
+.achievement > span {
+  color: var(--paper-hi);
+  background: var(--night);
+  padding: 6px 8px;
+  border: 2px solid var(--olive);
+  text-align: center;
+}
+.achievement h3 { color: var(--ink); }
+.achievement i { color: var(--faint); }
+.achievement:hover {
+  background:
+    linear-gradient(rgba(207, 224, 74, 0.94), rgba(207, 224, 74, 0.94)),
+    var(--camo) 0 0 / 200px 200px;
+  box-shadow: 10px 10px 0 var(--night);
+}
+.achievement:hover h3, .achievement:hover i { color: var(--night); }
+.achievement:hover > span { background: var(--night); color: var(--amber); border-color: var(--night); }
+.achievement:hover::before, .achievement:hover::after { border-color: var(--signal); }
+
+/* ---------- цитата: ночной камуфль ---------- */
+.quote {
+  position: relative;
+  border-top: 4px solid var(--night);
+  background-color: var(--night);
+  background-image:
+    linear-gradient(rgba(20, 26, 14, 0.78), rgba(20, 26, 14, 0.86)),
+    var(--camo);
+  background-size: auto, 480px 480px;
+  overflow: hidden;
+}
+.quote::before {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 8px;
+  background: repeating-linear-gradient(135deg,
+    var(--night) 0 12px, var(--grass) 12px 24px);
+  opacity: 0.7;
+}
+.quote .wrap { position: relative; z-index: 1; }
+.quote-mark { color: var(--amber); }
+.quote p {
+  color: var(--grass);
+  text-shadow: 3px 0 rgba(217, 79, 22, 0.5), -3px 0 rgba(140, 148, 84, 0.55);
+}
+
+/* ---------- подвал ---------- */
+.site-footer {
+  border-top: 4px solid var(--amber);
+  background-color: var(--night);
+  background-image:
+    linear-gradient(rgba(20, 26, 14, 0.86), rgba(20, 26, 14, 0.92)),
+    var(--camo);
+  background-size: auto, 340px 340px;
+}
+.site-footer p { color: rgba(236, 231, 200, 0.72); }
+.site-footer a {
+  color: var(--night);
+  background: var(--grass);
+  border: 2px solid var(--night);
+  padding: 6px 12px;
+  font-weight: 700;
+  box-shadow: 3px 3px 0 rgba(12, 16, 7, 0.7);
+  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+.site-footer a:hover {
+  color: var(--night);
+  background: var(--amber);
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 5px 0 rgba(12, 16, 7, 0.7);
+}
+
+/* ---------- FX-слой: перекраска хардкодов ---------- */
+.fx-progress {
+  background:
+    repeating-linear-gradient(90deg, var(--night) 0 2px, transparent 2px 14px),
+    linear-gradient(90deg, var(--olive), var(--grass) 55%, var(--amber));
+}
+.fx-counting { color: var(--rust) !important; }
+.fx-rail-dot::before { background: rgba(236, 231, 200, 0.45); }
+.fx-rail-dot:hover::before { background: var(--grass); }
+.fx-rail-dot.is-now::before { background: var(--amber); }
+.fx-glare::after {
+  background: radial-gradient(320px circle at var(--mx, 50%) var(--my, 50%), rgba(255, 214, 130, 0.4), transparent 60%);
+}
+.noise { opacity: 0.2; }
+
+/* затвор перехода — в тех же пятнах */
+#page-transition::before {
+  background:
+    repeating-linear-gradient(135deg, rgba(20, 26, 14, 0.9) 0 14px, rgba(255, 176, 32, 0.85) 14px 17px, rgba(20, 26, 14, 0.9) 17px 30px),
+    var(--camo) 0 0 / 400px 400px;
+}
+#page-transition::after {
+  background: var(--grass);
+  box-shadow: 0 0 18px rgba(207, 224, 74, 0.55);
+}
+
+/* ---------- мобильные: навигация не должна пропадать ---------- */
+@media (max-width: 760px) {
+  .header-inner, html.is-scrolled .header-inner { height: auto; min-height: 62px; padding: 10px 0; flex-wrap: wrap; gap: 8px; }
+  .primary-nav { display: flex; flex-wrap: wrap; gap: 6px; width: 100%; }
+  .nav-link { padding: 8px 10px; font-size: 11px; border-color: rgba(236, 231, 200, 0.28); }
+  .profile-hero { padding: 40px 0 54px; }
+  .profile-grid { gap: 34px; margin-top: 28px; }
+  .stats { gap: 14px; }
+  .stats > div { border-right: 0; padding: 6px 0; }
+  .achievement { grid-template-columns: 44px 1fr; padding: 20px; }
+  body::before { background-size: 420px 420px; animation-duration: 160s; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body::before { animation: none; }
+  .site-header::after { animation: none; }
+}

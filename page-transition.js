@@ -11,8 +11,8 @@
   hideStyle.textContent = 'body{visibility:hidden!important;}';
   document.head.appendChild(hideStyle);
 
-  var DURATION_IN = 700;  // должно совпадать с transform-длительностью .pt-in в CSS
-  var DURATION_OUT = 550; // должно совпадать с transform-длительностью .pt-out в CSS
+  var DURATION_IN = 320;
+  var DURATION_OUT = 160;
   var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var content, mark;
 
@@ -55,9 +55,24 @@
   }
 
   function playEntrance() {
-    if (window.__introPlaying || reduced) {
+    if (reduced) {
       document.body.classList.add('pt-open');
       reveal();
+      return;
+    }
+    // интро-волна играет первой, камера стартует после неё
+    if (window.__introPlaying) {
+      reveal();
+      window.__ptPlayEntrance = function () {
+        window.__ptPlayEntrance = null;
+        playEntrance();
+      };
+      setTimeout(function () {
+        if (window.__ptPlayEntrance) {
+          window.__ptPlayEntrance = null;
+          playEntrance();
+        }
+      }, 4000);
       return;
     }
     setOrigin();
@@ -71,6 +86,7 @@
     });
     setTimeout(function () {
       document.body.classList.remove('pt-in');
+      document.body.classList.add('pt-done');
     }, DURATION_IN + 60);
   }
 
@@ -80,6 +96,7 @@
       return;
     }
     setOrigin();
+    document.body.classList.remove('pt-done'); // возвращаем трансформацию — иначе камере не разгоняться
     document.body.classList.add('pt-out');
     void content.offsetWidth; // форс рефлоу: фиксируем текущее «открытое» состояние до включения transition
     document.body.classList.remove('pt-open');

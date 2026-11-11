@@ -4,46 +4,399 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>A</title>
+
+  <link rel="icon" href="favicon.png">
+  <link rel="stylesheet" href="fonts.css">
   <link rel="stylesheet" href="portfolio.css">
-  <link rel="stylesheet" href="fx.css" />
-  <link rel="stylesheet" href="page-transition.css" />
+  <link rel="stylesheet" href="fx.css">
+  <link rel="stylesheet" href="page-transition.css">
+  <link rel="stylesheet" href="camo.css">
+
+  <style>
+    .achievement-photo-gallery {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(220px, 1fr));
+      gap: 18px;
+      margin: 30px 0 36px;
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+      scroll-snap-type: x proximity;
+    }
+
+    .achievement-photo-frame {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-width: 0;
+      min-height: 180px;
+      margin: 0;
+      padding: 10px;
+      border: 2px solid var(--ink);
+      background: var(--bg-elevated);
+      box-shadow: 5px 5px 0 var(--blue);
+      scroll-snap-align: start;
+      gap: 10px;
+      transition: transform .3s ease, box-shadow .3s ease;
+    }
+
+    .achievement-photo-frame:hover {
+      transform: translateY(-5px) rotate(-.4deg);
+      box-shadow: 8px 9px 0 var(--bright);
+    }
+
+    .achievement-photo-placeholder {
+      display: grid;
+      place-content: center;
+      justify-items: center;
+      gap: 8px;
+      width: 100%;
+      min-height: 160px;
+      padding: 16px;
+      border: 2px dashed var(--blue);
+      background: rgba(27, 52, 232, .06);
+      color: var(--dim);
+      font: 500 11px 'JetBrains Mono', monospace;
+      letter-spacing: .12em;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    .achievement-photo-placeholder__plus {
+      color: var(--bright);
+      font: 500 34px/1 'JetBrains Mono', monospace;
+    }
+
+    .achievement-photo {
+      display: block;
+      width: auto;
+      height: auto;
+      max-width: 100%;
+      max-height: 360px;
+      object-fit: contain;
+      cursor: zoom-in;
+    }
+
+    .achievement-photo-button {
+      display: grid;
+      place-items: center;
+      width: 100%;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      cursor: zoom-in;
+    }
+
+    .achievement-photo-button:focus-visible {
+      outline: 3px solid var(--bright);
+      outline-offset: 4px;
+    }
+
+    .achievement-photo-frame figcaption {
+      color: var(--ink);
+      font: 500 11px 'JetBrains Mono', monospace;
+      letter-spacing: .08em;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    .photo-lightbox {
+      position: fixed;
+      z-index: 10000;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: rgba(0, 0, 0, .9);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity .3s ease, visibility .3s ease;
+    }
+
+    .photo-lightbox.is-open {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    .photo-lightbox__image {
+      display: block;
+      width: auto;
+      height: auto;
+      max-width: 92vw;
+      max-height: 88vh;
+      object-fit: contain;
+      border: 2px solid #fff;
+      box-shadow: 0 0 40px rgba(255, 255, 255, .2);
+      opacity: 0;
+      transform: scale(.82);
+      transition: transform .35s cubic-bezier(.2, .8, .2, 1), opacity .3s ease;
+    }
+
+    .photo-lightbox.is-open .photo-lightbox__image {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .photo-lightbox__close {
+      position: absolute;
+      top: 18px;
+      right: 20px;
+      display: grid;
+      width: 48px;
+      height: 48px;
+      place-items: center;
+      border: 1px solid rgba(255, 255, 255, .7);
+      background: rgba(0, 0, 0, .55);
+      color: #fff;
+      font: 400 34px/1 sans-serif;
+      cursor: pointer;
+    }
+
+    .photo-lightbox__close:hover {
+      background: #fff;
+      color: #000;
+    }
+
+    body.photo-lightbox-open {
+      overflow: hidden;
+    }
+
+    @media (max-width: 760px) {
+      .achievement-photo-gallery {
+        grid-template-columns: repeat(3, minmax(220px, 1fr));
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .photo-lightbox,
+      .photo-lightbox__image {
+        transition: none;
+      }
+    }
+
+    #profile .achievement {
+      transform-origin: center;
+      transition:
+        transform .35s cubic-bezier(.2, .8, .2, 1),
+        box-shadow .35s ease,
+        background .35s ease;
+    }
+
+    #profile .achievement:hover,
+    #profile .achievement:focus-within {
+      transform: translateY(-6px) rotate(-.35deg);
+      box-shadow: 10px 12px 0 var(--bright);
+    }
+  </style>
 </head>
+
 <body>
   <script src="page-transition.js"></script>
 
   <div class="noise"></div>
-  <header class="site-header"><div class="wrap header-inner">
-    <a class="brand" href="portfolio.html"><span class="crosshair"></span>ПРОЕКТНАЯ</a>
-    <nav class="primary-nav"><a class="nav-link is-current" href="portfolio.html">← вернуться в каплю адекватности</a><a class="nav-link" href="index.html">Главная</a></nav>
-  </div></header>
 
-  <main id="profile"></main>
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="portfolio.html">
+        <span class="crosshair"></span>
+        ПРОЕКТНАЯ
+      </a>
 
-  <footer class="site-footer"><div class="wrap"><p>© Проектная. Под моей защитой</p><a href="portfolio.html">Все люди ↑</a></div></footer>
-  <script>
-  const people = {
-    e:{name:'Е',role:'ЧЕЛОВЕК',img:'EMA_3.png',intro:'Гений миллиардер плейбой филантроп',stats:[['15 лет',''],['200','(возможно)'],['3','года успешного получения зп за то что я есть']],achievements:['Вышел на регион в "Пилоты Будущего"','2 раза был в ВДЦ "Орлёнок"','Финалист всероссийского конкурса по робототехнике "Hello pioneer! 2025-2026"']},
-    m:{name:'М',role:'ЧЕЛОВЕКР',img:'EMA_1.png',intro:'Его к власти не пускать, иначе кого он будет ненавидеть?',stats:[['0','суток отсижено'],['1 млн мощи','в аутизме-похеризме'],['7','отказов девушек']],achievements:['Оппозиционер','Был в ВДЦ "Орлёнок"','Финалист всероссийского конкурса по робототехнике "Hello pioneer! 2025-2026"']},
-    a:{name:'А',role:'ЧЕРНОВЕК',img:'EMA_2.png',intro:'Рождён для службы, хорошо обращается с оружием и повестками. Уважает призывников',stats:[['15','лет работы'],['все конечности','до сих пор'],['99.9%','черный']],achievements:['Состоит в Юнармии','Был в ВДЦ "Орлёнок"','Финалист всероссийского конкурса по робототехнике "Hello pioneer! 2025-2026"']}
-  };
-  const key='a', p=people[key];
-  //document.title=p.name+'';
-  document.getElementById('profile').innerHTML=`
-  <section class="profile-hero"><div class="wrap">
-    <a class="back-link" href="portfolio.html">← Вернуться к выбору</a>
-    <div class="profile-grid">
-      <div class="profile-photo frame reveal"><div class="photo-code"></div><img src="${p.img}" alt="${p.name}"></div>
-      <div class="profile-copy reveal"><div class="eyebrow">${p.role}</div><h1>${p.name}</h1><p>${p.intro}</p>
-        <div class="stats">${p.stats.map(s=>`<div><b>${s[0]}</b><span>${s[1]}</span></div>`).join('')}</div>
-      </div>
+      <nav class="primary-nav" aria-label="Основная навигация">
+        <a class="nav-link is-current" href="portfolio.html">
+          ← вернуться в каплю адекватности
+        </a>
+        <a class="nav-link" href="index.html">Главная</a>
+
+        <button class="nav-link sound-toggle" id="soundToggle" type="button" aria-pressed="true" hidden>ЗВУК: ВКЛ</button>
+      </nav>
     </div>
-  </div></section>
-  <section class="section achievements"><div class="wrap">
-    <div class="section-head reveal"><div class="eyebrow">ДОСТИЖЕНИЯ</div><h2>Что сделано</h2> <p>для Родины</p></div>
-    <div class="achievement-list">${p.achievements.map((a,i)=>`<article class="achievement frame reveal"><span>${String(i+1).padStart(2,'0')}</span><h3>${a}</h3><i>A / Достижения</i></article>`).join('')}</div>
-  </div></section>
-  <section class="section quote"><div class="wrap"><div class="quote-mark reveal">“</div><p class="reveal">Тем больше, тем меньше</p></div></section>`;
+  </header>
+
+  <main id="profile">
+    <section class="profile-hero">
+      <div class="wrap">
+        <div class="profile-grid">
+          <div class="profile-photo frame reveal">
+            <div class="photo-code"></div>
+            <img src="EMA_2.png" alt="А" decoding="async" fetchpriority="high">
+          </div>
+
+          <div class="profile-copy reveal">
+            <div class="eyebrow">Наш голос</div>
+            <h1>А</h1>
+            <p>
+              Рождён для службы, хорошо обращается с оружием и повестками.
+              Уважает призывников
+            </p>
+
+            <div class="stats">
+              <div>
+                <b>15</b>
+                <span>лет работы</span>
+              </div>
+
+              <div>
+                <b>все конечности</b>
+                <span>до сих пор</span>
+              </div>
+
+              <div>
+                <b>70%</b>
+                <span>шоколад</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section achievements">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <div class="eyebrow"></div>
+          <h2>Достижения</h2>
+        </div>
+
+        <div class="achievement-photo-gallery" aria-label="Фотографии достижений">
+          <figure class="achievement-photo-frame">
+            <button class="achievement-photo-button" type="button" aria-label="Увеличить фото ИнтЭРА 2025">
+              <img class="achievement-photo" src="дста/intera.jpg" alt="Фото ИнтЭРА 2025" loading="lazy">
+            </button>
+            <figcaption>ИнтЭРА 2025</figcaption>
+          </figure>
+
+          <figure class="achievement-photo-frame">
+            <button class="achievement-photo-button" type="button" aria-label="Увеличить фото КреаТех-2026">
+              <img class="achievement-photo" src="дста/kreaa.jpg" alt="Фото КреаТех-2026" loading="lazy">
+            </button>
+            <figcaption>КреаТех-2026</figcaption>
+          </figure>
+
+          <figure class="achievement-photo-frame">
+            <button class="achievement-photo-button" type="button" aria-label="Увеличить фото HPA">
+              <img class="achievement-photo" src="дста/hpa.jpg" loading="lazy">
+            </button>
+            <figcaption>Hello, pioneer!</figcaption>
+          </figure>
+        </div>
+
+        <div class="achievement-list">
+          <article class="achievement frame reveal">
+            <span>01</span>
+            <h3>Состоит в Юнармии</h3>
+            <i>так, чисто похвастаться</i>
+          </article>
+
+          <article class="achievement frame reveal">
+            <span>02</span>
+            <h3>Был в ВДЦ «Орлёнок»</h3>
+            <i>ну ни чё се</i>
+          </article>
+
+          <article class="achievement frame reveal">
+            <span>03</span>
+            <h3>
+              Финалист всероссийского конкурса по робототехнике
+              «Hello pioneer! 2025–2026»
+            </h3>
+            <i>афигеть</i>
+          </article>
+
+          <article class="achievement frame reveal">
+            <span>04</span>
+            <h3>Финалист КреаТех-2026</h3>
+            <i></i>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section quote">
+      <div class="wrap">
+        <div class="quote-mark reveal">“</div>
+        <p class="reveal">Тем больше, тем меньше</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <p>© Проектная. Под моей защитой — плагиаторы идите нахер</p>
+      <a href="portfolio.html">Все люди ↑</a>
+    </div>
+  </footer>
+
+  <div
+    class="photo-lightbox"
+    id="photoLightbox"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Просмотр фото"
+    aria-hidden="true"
+  >
+    <button
+      class="photo-lightbox__close"
+      id="photoLightboxClose"
+      type="button"
+      aria-label="Закрыть фото"
+    >
+      ×
+    </button>
+    <img class="photo-lightbox__image" id="photoLightboxImage" alt="">
+  </div>
+
+  <script>
+    (() => {
+      const lightbox = document.getElementById('photoLightbox');
+      const enlargedPhoto = document.getElementById('photoLightboxImage');
+      const closeButton = document.getElementById('photoLightboxClose');
+      const photoButtons = document.querySelectorAll('.achievement-photo-button');
+      let lastTrigger = null;
+
+      function openPhoto(button) {
+        const photo = button.querySelector('img');
+        if (!photo) return;
+
+        lastTrigger = button;
+        enlargedPhoto.src = photo.currentSrc || photo.src;
+        enlargedPhoto.alt = photo.alt;
+        lightbox.classList.add('is-open');
+        lightbox.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('photo-lightbox-open');
+        closeButton.focus();
+      }
+
+      function closePhoto() {
+        if (!lightbox.classList.contains('is-open')) return;
+
+        lightbox.classList.remove('is-open');
+        lightbox.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('photo-lightbox-open');
+        enlargedPhoto.removeAttribute('src');
+
+        if (lastTrigger) lastTrigger.focus();
+      }
+
+      photoButtons.forEach(button => {
+        button.addEventListener('click', () => openPhoto(button));
+      });
+
+      closeButton.addEventListener('click', closePhoto);
+
+      lightbox.addEventListener('click', event => {
+        if (event.target === lightbox) closePhoto();
+      });
+
+      document.addEventListener('keydown', event => {
+        if (event.key === 'Escape') closePhoto();
+      });
+    })();
   </script>
+
+  <script src="march.js" defer></script>
   <script src="fx.js" defer></script>
   <script src="portfolio.js"></script>
 </body>

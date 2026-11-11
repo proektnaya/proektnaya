@@ -10,6 +10,10 @@
   var reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
   var fine = matchMedia('(pointer: fine)').matches;
 
+  var fxQueue = [];
+  var fxIO = null;
+  var fxRaf = 0;
+
   /* ↓ впиши URL своего Cloudflare Worker (см. worker.js). Пусто = маячок молчит. */
   var WORKER_URL = '';
 
@@ -36,15 +40,27 @@
     scrollFx(bar);
     lazyVideo();
     telemetry();
-    if (fine && !reduced) { cursorGlow(); reticle(); }
     reveals();
     splitHeadings();
-    if (!reduced) { magnetic(); scrambleEyes(); }
+    stamps();
+    kenBurns();
+    if (!reduced) {
+      magnetic();
+      heroParallax();
+      scrollRush();
+      railNav();
+      scrambleEyes();
+      if (fine) tilt();
+      counters();
+    } else {
+      counters(true);
+    }
   }
 
   /* ---------- header state, progress bar, hero parallax ---------- */
   function scrollFx(bar) {
     var heroMedia = d.querySelector('.hero-media');
+    var heroText = d.querySelector('.hero-content');
     var ticking = false;
     function tick() {
       ticking = false;
@@ -55,6 +71,10 @@
       if (heroMedia && y < innerHeight * 1.2) {
         heroMedia.style.transform = 'translate3d(0,' + (y * 0.3).toFixed(1) + 'px,0)';
       }
+      if (heroText && !reduced && y < innerHeight) {
+        heroText.style.transform = 'translate3d(0,' + (y * -0.12).toFixed(1) + 'px,0)';
+        heroText.style.opacity = String(Math.max(0, 1 - y / (innerHeight * 0.75)));
+      }
     }
     // rAF-троттлинг: не больше одного пересчёта на кадр
     addEventListener('scroll', function () {
@@ -62,15 +82,6 @@
     }, { passive: true });
     addEventListener('resize', tick);
     tick();
-  }
-
-  /* ---------- light spot following the pointer (transform = compositor, no repaint) ---------- */
-  function cursorGlow() {
-    var g = mk('div', 'fx-cursor-glow');
-    d.body.appendChild(g);
-    addEventListener('pointermove', function (e) {
-      g.style.transform = 'translate3d(' + e.clientX + 'px,' + e.clientY + 'px,0)';
-    }, { passive: true });
   }
 
   /* ---------- маячок визита для stats.html (Cloudflare Worker или Google Apps Script) ---------- */
@@ -148,56 +159,66 @@
     d.addEventListener('visibilitychange', function () { d.hidden ? pause() : play(); });
   }
 
-  /* ---------- reticle cursor: dot + trailing ring ---------- */
-  function reticle() {
-    var dot = mk('div', 'fx-cdot');
-    var ring = mk('div', 'fx-cring');
-    d.body.appendChild(dot);
-    d.body.appendChild(ring);
-
-    var x = -100, y = -100, rx = x, ry = y, link = false, press = false;
-
-    addEventListener('pointermove', function (e) {
-      x = e.clientX;
-      y = e.clientY;
-      dot.style.transform = 'translate3d(' + x + 'px,' + y + 'px,0)';
-      link = !!(e.target.closest && e.target.closest('a,button,input,summary,[data-tilt]'));
-      ring.classList.toggle('fx-cursor-link', link);
-    }, { passive: true });
-    addEventListener('pointerdown', function () { press = true; });
-    addEventListener('pointerup', function () { press = false; });
-
-    (function loop() {
-      rx += (x - rx) * 0.16;
-      ry += (y - ry) * 0.16;
-      var s = (press ? 0.78 : 1) * (link ? 1.35 : 1);
-      ring.style.transform = 'translate3d(' + rx.toFixed(1) + 'px,' + ry.toFixed(1) + 'px,0) scale(' + s + ')';
-      requestAnimationFrame(loop);
-    })();
+  /* ---------- общий наблюдатель за .fx-init ----------
+     clip-path оставляет от блока 4px полосы: узкая мишень не всегда
+     попадает в кадр IntersectionObserver, поэтому дублируем сводкой по rect. */
+  function dropFx(el) {
+    var i = fxQueue.indexOf(el);
+    if (i > -1) fxQueue.splice(i, 1);
   }
 
-  /* ---------- generic scroll reveal ---------- 
+  function showFx(el) {
+    if (el.classList.contains('fx-show')) return;
+    el.classList.add('fx-show');
+    dropFx(el);
+    if (fxIO) fxIO.unobserve(el);
+    // вложенный .fx-init родитель клипает в ноль — сам он не пересечётся никогда
+    el.querySelectorAll('.fx-init').forEach(function (k) {
+      k.classList.add('fx-show');
+      dropFx(k);
+      if (fxIO) fxIO.unobserve(k);
+    });
+  }
+
+  function queueFx() { if (!fxRaf) fxRaf = requestAnimationFrame(sweepFx); }
+
+  function sweepFx() {
+    fxRaf = 0;
+    var lim = innerHeight * 0.92;
+    for (var j = fxQueue.length - 1; j >= 0; j--) {
+      var r = fxQueue[j].getBoundingClientRect();
+      if (r.top < lim && r.bottom > 0) showFx(fxQueue[j]);
+    }
+  }
+
+  function watchFx(el) {
+    if (reduced || !('IntersectionObserver' in window)) { showFx(el); return; }
+    if (!fxIO) {
+      fxIO = new IntersectionObserver(function (es) {
+        es.forEach(function (en) { if (en.isIntersecting) showFx(en.target); });
+      }, { threshold: 0, rootMargin: '0px 0px -8% 0px' });
+      addEventListener('scroll', queueFx, { passive: true });
+      addEventListener('resize', queueFx, { passive: true });
+    }
+    fxQueue.push(el);
+    fxIO.observe(el);
+    queueFx();
+  }
+
+  /* ---------- generic scroll reveal ---------- */
   function reveals() {
-    var els = d.querySelectorAll('.section-head, .project-grid>*, .photo-grid>*, .video-frame, .presentation-embed, .faq-item, .faq-cta, .void-inner, .hero-content>*, .detail-head .eyebrow, .achievement, .manifesto-text, .profile-copy, .profile-photo');
+    var els = d.querySelectorAll('.section-head, .project-grid>*, .photo-grid>*, .photo-grid figure, .video-frame, .presentation-embed, .faq-item, .faq-cta, .void-inner, .hero-content>*, .detail-head .eyebrow, .achievement, .manifesto-text, .profile-copy, .profile-photo, .marquee');
     var list = [];
     els.forEach(function (el) { if (!el.classList.contains('reveal')) list.push(el); });
 
-    if (reduced) {
-      list.forEach(function (el) { el.classList.add('fx-show'); });
-      return;
-    }
-    var io = new IntersectionObserver(function (es) {
-      es.forEach(function (en) {
-        if (en.isIntersecting) { en.target.classList.add('fx-show'); io.unobserve(en.target); }
-      });
-    }, { threshold: 0.12, rootMargin: '0px 0px -6% 0px' });
-
     list.forEach(function (el, i) {
       el.classList.add('fx-init');
-      el.style.setProperty('--fx-d', (i % 3) * 110 + 'ms');
-      io.observe(el);
+      el.style.setProperty('--fx-d', (i % 4) * 90 + 'ms');
+      watchFx(el);
     });
-  }*/
+    // страховка: ничего не должно остаться спрятанным
+    setTimeout(function () { list.forEach(showFx); }, 4000);
+  }
 
   /* ---------- word-by-word h1 entrance ---------- */
   function splitHeadings() {
@@ -223,13 +244,8 @@
         }
       });
 
-      head.classList.add('fx-init');
-      var io = new IntersectionObserver(function (es) {
-        es.forEach(function (en) {
-          if (en.isIntersecting) { en.target.classList.add('fx-show'); io.unobserve(en.target); }
-        });
-      }, { threshold: 0.2 });
-      io.observe(head);
+      head.classList.add('fx-init', 'fx-misreg');
+      watchFx(head);
     });
   }
 
@@ -278,5 +294,162 @@
       else el.textContent = txt;
     }
     requestAnimationFrame(step);
+  }
+
+  /* ---------- штампы: «припечатывание» плашек при появлении ---------- */
+  function stamps() {
+    var els = d.querySelectorAll('.stamp');
+    if (!els.length) return;
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        en.target.classList.add('fx-stamp-in');
+        io.unobserve(en.target);
+      });
+    }, { threshold: 0.5 });
+    els.forEach(function (el) { io.observe(el); });
+  }
+
+  /* ---------- дыхание Ken Burns на крупных фото ---------- */
+  function kenBurns() {
+    d.querySelectorAll('.profile-photo, .person-photo, .frame-photo').forEach(function (el) {
+      el.classList.add('fx-kb');
+    });
+  }
+
+  /* ---------- 3D tilt + блик за курсором ---------- */
+  function tilt() {
+    d.querySelectorAll('.project-card, .video-frame, .presentation-embed, .frame-photo').forEach(function (card) {
+      card.classList.add('fx-glare');
+      var pending = false, mx = 0, my = 0;
+
+      function apply() {
+        pending = false;
+        var r = card.getBoundingClientRect();
+        var px = (mx - r.left) / r.width - 0.5;
+        var py = (my - r.top) / r.height - 0.5;
+        card.classList.add('fx-tilt');
+        card.style.setProperty('--ty', (px * 5).toFixed(2) + 'deg');
+        card.style.setProperty('--tx', (-py * 5).toFixed(2) + 'deg');
+        card.style.setProperty('--mx', ((px + 0.5) * 100).toFixed(1) + '%');
+        card.style.setProperty('--my', ((py + 0.5) * 100).toFixed(1) + '%');
+      }
+
+      card.addEventListener('pointermove', function (e) {
+        mx = e.clientX; my = e.clientY;
+        if (!pending) { pending = true; requestAnimationFrame(apply); }
+      }, { passive: true });
+
+      card.addEventListener('pointerleave', function () {
+        card.style.setProperty('--ty', '0deg');
+        card.style.setProperty('--tx', '0deg');
+      });
+    });
+  }
+
+  /* ---------- докрутка чисел в статистике (исходный текст восстанавливается точно) ---------- */
+  function counters(instant) {
+    var els = d.querySelectorAll('.stats b, .person-stat b, .stat-box b, .target-card strong');
+    Array.prototype.slice.call(els).forEach(function (el) {
+      var raw = el.textContent;
+      var m = raw.match(/^(\d+(?:[.,]\d+)?)([\s\S]*)$/);
+      if (!m) return;
+      var dec = (m[1].split(/[.,]/)[1] || '').length;
+      var target = parseFloat(m[1].replace(',', '.'));
+      var sep = /[.,]/.test(m[1]) ? m[1].replace(/\d/g, '') : '';
+      if (!isFinite(target) || instant) return;
+
+      el.dataset.countTo = target;
+      el._restore = raw;
+
+      function run() {
+        var start = performance.now(), dur = 950;
+        function step(t) {
+          var p = Math.min(1, (t - start) / dur);
+          var e = 1 - Math.pow(1 - p, 3);
+          var val = (target * e).toFixed(dec).replace('.', sep || '.');
+          el.textContent = val + m[2];
+          if (p < 1) requestAnimationFrame(step);
+          else el.textContent = raw; // ровно исходная строка
+        }
+        el.classList.add('fx-counting');
+        requestAnimationFrame(step);
+        setTimeout(function () { el.classList.remove('fx-counting'); }, dur + 80);
+      }
+
+      var io = new IntersectionObserver(function (es) {
+        es.forEach(function (en) { if (en.isIntersecting) { run(); io.disconnect(); } });
+      }, { threshold: 0.6 });
+      io.observe(el);
+    });
+  }
+
+  /* ---------- v4: параллакс героя от курсора (по самому видео, не по контейнеру) ---------- */
+  function heroParallax() {
+    var v = d.querySelector('.hero-media video, .hero-media img');
+    if (!v || !fine || reduced) return;
+    var tx = 0, ty = 0, cx = 0, cy = 0, run = false;
+    addEventListener('pointermove', function (e) {
+      tx = (e.clientX / innerWidth - 0.5) * 2;
+      ty = (e.clientY / innerHeight - 0.5) * 2;
+      if (!run) { run = true; requestAnimationFrame(loop); }
+    }, { passive: true });
+    function loop() {
+      cx += (tx - cx) * 0.07;
+      cy += (ty - cy) * 0.07;
+      v.style.transform = 'translate3d(' + (cx * -22).toFixed(1) + 'px,' + (cy * -14).toFixed(1) + 'px,0) scale(1.08)';
+      if (Math.abs(tx - cx) > 0.002 || Math.abs(ty - cy) > 0.002) requestAnimationFrame(loop);
+      else run = false;
+    }
+  }
+
+  /* ---------- v4: разгон бегущей строки от скорости скролла ---------- */
+  function scrollRush() {
+    var tracks = d.querySelectorAll('.marquee-track');
+    if (!tracks.length || reduced) return;
+    var last = 0, vel = 0, ticking = false;
+    addEventListener('scroll', function () {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(function () {
+        var y = window.pageYOffset || h.scrollTop || 0;
+        vel = Math.min(1, Math.abs(y - last) / 60);
+        last = y;
+        for (var i = 0; i < tracks.length; i++) {
+          tracks[i].style.setProperty('--marquee-speed', (22 - vel * 15).toFixed(1) + 's');
+        }
+        ticking = false;
+      });
+    }, { passive: true });
+  }
+
+  /* ---------- v4: боковой реестр разделов (только указательные устройства) ---------- */
+  function railNav() {
+    if (!fine || reduced) return;
+    var secs = d.querySelectorAll('main > section, .section, .hero, .void, .detail-head, .portfolio-hero');
+    if (secs.length < 2) return;
+    var rail = mk('nav', 'fx-rail');
+    rail.setAttribute('aria-hidden', 'true');
+    var dots = [];
+    Array.prototype.forEach.call(secs, function (s, i) {
+      var b = mk('button', 'fx-rail-dot');
+      b.type = 'button';
+      b.tabIndex = -1;
+      b.style.setProperty('--i', i);
+      b.addEventListener('click', function () { s.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+      rail.appendChild(b);
+      dots.push(b);
+    });
+    d.body.appendChild(rail);
+
+    if (!('IntersectionObserver' in window)) return;
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        var i = Array.prototype.indexOf.call(secs, en.target);
+        for (var k = 0; k < dots.length; k++) dots[k].classList.toggle('is-now', k === i);
+      });
+    }, { threshold: 0.45 });
+    Array.prototype.forEach.call(secs, function (s) { io.observe(s); });
   }
 })();

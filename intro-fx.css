@@ -1,4 +1,4 @@
-/* ===== Интро: пиксельный наплыв (стиль «редлайна» поверх чертежа) ===== */
+/* ===== Интро: riso-проявка (пиксельная волна поверх бумаги) ===== */
 html.intro-lock,
 html.intro-lock body {
   overflow: hidden;
@@ -9,7 +9,7 @@ html.intro-lock body {
   position: fixed;
   inset: 0;
   z-index: 9999;
-  background: #ffffff;
+  background: #e9e2d0;
 }
 
 #intro-canvas {
